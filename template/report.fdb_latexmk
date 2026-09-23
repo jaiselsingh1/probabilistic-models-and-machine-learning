@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1790125424.78357 "/Users/jaisel/Documents/coursework/probabilistic_models/reader_reports/week2.tex" "week2.pdf" "week2" 1790125424.94303 0
-  "/Users/jaisel/Documents/coursework/probabilistic_models/reader_reports/week2.tex" 1790125424.39845 2848 efac60c2552cd2b433d2e80a58c08e82 ""
+["pdflatex"] 1790125121.73995 "/Users/jaisel/Documents/coursework/probabilistic_models/template/report.tex" "report.pdf" "report" 1790125121.90547 0
+  "/Users/jaisel/Documents/coursework/probabilistic_models/template/report.tex" 1790125121.34963 2848 efac60c2552cd2b433d2e80a58c08e82 ""
   "/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2026basic/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm" 1136768653 4524 6bce29db5bc272ba5f332261583fee9c ""
   "/usr/local/texlive/2026basic/texmf-dist/fonts/tfm/adobe/times/ptmb8t.tfm" 1136768653 6880 f19b8995b61c334d78fc734065f6b4d4 ""
@@ -80,12 +80,12 @@
   "/usr/local/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1790054292 119586 690ca99179e9c3accd6d0b11906e1287 ""
   "/usr/local/texlive/2026basic/texmf-var/web2c/pdftex/pdflatex.fmt" 1772405612 2966183 588a2f29d0aaf280e3a142a37c2dd621 ""
   "/usr/local/texlive/2026basic/texmf.cnf" 1772405582 628 bbc09d6d38872d53c11bb48dc9b14e88 ""
-  "week2.aux" 1790125424.92319 162 55205a9e8a8eca30d36afb389b0617bf "pdflatex"
-  "week2.out" 1790125424.90875 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "week2.tex" 1790125424.39845 2848 efac60c2552cd2b433d2e80a58c08e82 ""
+  "report.aux" 1790125121.88563 162 55205a9e8a8eca30d36afb389b0617bf "pdflatex"
+  "report.out" 1790125121.87047 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "report.tex" 1790125121.34963 2848 efac60c2552cd2b433d2e80a58c08e82 ""
   (generated)
-  "week2.aux"
-  "week2.log"
-  "week2.out"
-  "week2.pdf"
+  "report.aux"
+  "report.log"
+  "report.out"
+  "report.pdf"
   (rewritten before read)

@@ -1,18 +1,59 @@
 \documentclass[12pt]{article}
 
-\input{../template/preamble}
+% Keep the template's layout with fonts available in the local TeX installation.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
 
 \begin{document}
 
 \begin{flushleft}
-\textbf{Linear and Logistic Regression} \\
+\textbf{Week 2: Linear and Logistic Regression} \\
 Jaisel Singh (js6897) \\
-\today
+September 23, 2026
 \end{flushleft}
 
 \vspace{0.1in}
 
-Write here. 
+What stood out to me in \emph{Regression and Other Stories} was the distinction
+between using regression for prediction and using it to compare groups. A
+coefficient can describe how average earnings differ between taller and shorter
+people, but that alone does not tell us what would happen to someone's earnings
+if their height changed. Calling a coefficient an ``effect'' can therefore hide
+assumptions that the fitted model does not establish. This makes interpreting a
+regression seem at least as important as fitting it.
+
+I also found it helpful to think of regression as modeling a distribution of
+outcomes given the inputs. With independent normal errors of equal variance,
+$y_i \mid x_i \sim \mathcal{N}(a+bx_i,\sigma^2)$, maximizing the likelihood over
+$a$ and $b$ gives the same estimates as minimizing squared residuals. This
+connects a familiar fitting rule to an explicit assumption about the data,
+although normality is not required simply to fit least squares. Keeping the
+distribution in mind also clarified regression to the mean: predicted heights
+can be closer to the average without implying that everyone eventually has the
+same height, because actual outcomes still vary around those predictions.
+
+Logistic regression extends this perspective to binary outcomes. It models a
+Bernoulli probability $p(x)$, with $\log[p(x)/(1-p(x))]=a+bx$, so predicted
+probabilities stay between zero and one. The coefficient describes a constant
+difference in log-odds per unit of $x$; the corresponding difference in
+probability depends on the starting value of $x$. I find the shared likelihood
+view useful: choosing a distribution for the outcome determines how we fit the
+model and interpret its predictions. The question I am left with is how to tell
+when a model predicts reasonably well but gives misleading comparisons because
+important variables or interactions have been left out.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Gelman, Hill, and Vehtari, \href{https://avehtari.github.io/ROS-Examples/}{\emph{Regression and Other Stories}};
+Shalizi, \href{https://www.stat.cmu.edu/~cshalizi/ADAfaEPoV/}{\emph{Advanced Data Analysis from an Elementary Point of View}} (logistic regression).
+\par}
 
 \end{document}
 
