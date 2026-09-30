@@ -1,0 +1,67 @@
+\documentclass[12pt]{article}
+
+% Match week 2 using fonts available in the local TeX installation.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Week 3: Stochastic Optimization} \\
+Jaisel Singh (js6897) \\
+September 30, 2026
+\end{flushleft}
+
+\vspace{0.1in}
+
+What stood out to me in Hardt and Recht's optimization chapter was how much
+the choice of objective matters for fitting a model. Empirical risk minimization
+means minimizing average training loss, which connects directly to last week's
+least-squares and likelihood objectives. Convexity helps explain why some of
+these problems are tractable: for a differentiable convex objective, any
+stationary point is a global minimum. Still, convergence of gradient descent
+requires appropriate conditions, including the choice of step size. I found this
+distinction useful because it separates properties of the problem from choices
+we make when solving it.
+
+I also found the tradeoff behind stochastic gradient descent (SGD) interesting.
+For the average loss \mbox{$F(w)=n^{-1}\sum_{i=1}^{n}\ell_i(w)$}, sampling an
+example uniformly gives a gradient whose expectation is $\nabla F(w)$. Each update is much cheaper
+than computing the full gradient, although an individual step can increase the
+training loss. This makes SGD's usefulness easier to understand: we can afford
+many imperfect updates. Near an optimum, individual examples can still push
+the parameters in different directions even when their gradients average to
+zero. The learning-rate schedule therefore affects both how quickly we make
+progress and how much we continue to fluctuate.
+
+Gower et al.'s discussion of variance reduction gives a useful response to this
+problem. For example, SVRG periodically computes a full gradient at a reference
+point and uses it to correct subsequent stochastic estimates. I like the idea
+of spending additional computation occasionally to make many later updates more
+informative. However, Bottou et al.'s distinction between optimization and
+statistical error makes me hesitate to equate a more accurate training solution
+with a better model. Improving predictions also depends on the data and the
+model class. The question I am left with is how, under a fixed computing budget,
+we should decide whether to spend more effort reducing gradient noise or whether
+ordinary SGD has already optimized the training objective well enough.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Hardt and Recht, \href{https://mlstory.org/optimization.html}{``Optimization,'' Chapter 5};
+Gower et al., \href{https://arxiv.org/abs/2010.00892}{\emph{Variance-Reduced Methods for Machine Learning}};
+Bottou et al., \href{https://arxiv.org/abs/1606.04838}{\emph{Optimization Methods for Large-Scale Machine Learning}}.
+\par}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
