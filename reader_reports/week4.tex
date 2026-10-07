@@ -1,0 +1,64 @@
+\documentclass[12pt]{article}
+
+% Match the earlier reports using locally available fonts.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Week 4: Markov Chain Monte Carlo} \\
+Jaisel Singh (js6897) \\
+October 7, 2026
+\end{flushleft}
+
+\vspace{0.1in}
+
+What stood out to me in Neal's review was that Bayesian inference often comes
+down to averaging over plausible parameter values. This changes the goal from
+last week's optimization: a single high-probability point does not describe the
+uncertainty around it. MCMC constructs a Markov chain whose stationary
+distribution is the target posterior, allowing us to estimate expectations from
+its draws when the chain explores adequately. I found it especially useful that
+Metropolis acceptance ratios cancel the unknown normalizing constant. We can
+therefore work with an unnormalized posterior even when computing its integral
+is impractical.
+
+The gap between a correct algorithm and a useful finite run also stood out.
+Successive draws are dependent, and strong positive autocorrelation means that
+collecting many draws may add little information. I found effective sample size
+a more meaningful way to judge precision than the raw iteration count. A small
+Monte Carlo standard error does not mean the posterior itself is narrow:
+one measures uncertainty in our numerical estimate, while the other reflects
+uncertainty about the model's parameters. This distinction makes me more careful
+about what it means to say that a result is precise.
+
+Hoffman and Gelman's No-U-Turn Sampler addresses some of this computational
+difficulty. Hamiltonian Monte Carlo uses momentum and gradients to propose
+moves that can travel farther through the distribution than a random walk.
+NUTS chooses trajectory lengths automatically by stopping expansion when a path
+starts doubling back, while preserving the target distribution through its
+candidate-selection rules. I like how this makes a sophisticated sampler easier
+to use, though automatic tuning does not establish convergence. My remaining
+question is how to distinguish a chain that has explored the posterior well
+from one that looks stable because it is stuck near a single mode.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Neal (1993), \href{https://ftp.cs.toronto.edu/pub/radford/review.pdf}{\emph{Probabilistic Inference Using Markov Chain Monte Carlo Methods}};
+Hoffman and Gelman (2014), \href{https://jmlr.org/papers/v15/hoffman14a.html}{\emph{The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo}}.
+\par}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
