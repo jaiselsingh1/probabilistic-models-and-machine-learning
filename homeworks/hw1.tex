@@ -1,0 +1,191 @@
+\documentclass[12pt]{article}
+
+\input{preamble}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,arrows.meta}
+
+% Tighten vertical spacing so each question fits the one-page limit.
+% Fonts, 12pt size, and page geometry are left exactly as the template sets them.
+\setlength{\parskip}{0.8ex plus 0.2ex minus 0.2ex}
+\setlength{\abovedisplayskip}{3pt plus 1.5pt minus 1.5pt}
+\setlength{\belowdisplayskip}{3pt plus 1.5pt minus 1.5pt}
+\setlength{\abovedisplayshortskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowdisplayshortskip}{3pt plus 1pt minus 1pt}
+
+\newcommand{\Norm}{\mathcal{N}}
+\newcommand{\Dir}{\mathrm{Dirichlet}}
+\newcommand{\sbeta}{\sqrt{1-\beta}}
+\newcommand{\den}{\beta + (1-\beta)\tau_0^2}
+\newcommand{\simplex}{\Delta_{V-1}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Homework 1} \\
+Jaisel Singh (js6897) \hfill \today
+\end{flushleft}
+
+\textbf{Question 1: A First Look at Denoising Models}
+
+\textit{(a) Posterior.} Both $p(x_0)$ and $p(x_1 \mid x_0)$ are Gaussian with mean
+linear in $x_0$, so $(x_0, x_1)$ is jointly Gaussian and the posterior is Gaussian
+before any algebra; the work is to find its two parameters. By Bayes' rule, keeping
+only the factors that involve $x_0$,
+\[
+  p(x_0 \mid x_1) \;\propto\; p(x_0)\, p(x_1 \mid x_0)
+  \;\propto\; \exp\left\{ -\frac{x_0^2}{2\tau_0^2}
+  - \frac{(x_1 - \sbeta\, x_0)^2}{2\beta} \right\}.
+\]
+Expanding the square and dropping $x_1^2 / (2\beta)$, which is constant in $x_0$,
+the exponent becomes
+\[
+  -\frac{x_0^2}{2\tau_0^2}
+  - \frac{(1-\beta)\,x_0^2 - 2\sbeta\, x_0 x_1}{2\beta}
+  \;=\; -\frac{1}{2}
+  \underbrace{\left( \frac{1}{\tau_0^2} + \frac{1-\beta}{\beta} \right)}_{\textstyle \lambda}
+  x_0^2
+  \;+\; \underbrace{\frac{\sbeta\, x_1}{\beta}}_{\textstyle h}\, x_0 .
+\]
+Completing the square, any density proportional to
+$\exp\{ -\tfrac12 \lambda x_0^2 + h x_0 \}$ is $\Norm(h/\lambda,\, 1/\lambda)$.
+Here $\lambda = \big(\den\big) / (\beta \tau_0^2)$, so
+\[
+  \frac{1}{\lambda} = \frac{\beta\,\tau_0^2}{\den},
+  \qquad
+  \frac{h}{\lambda} = \frac{\sbeta\, x_1}{\beta} \cdot \frac{\beta\,\tau_0^2}{\den}
+  = \frac{\sbeta\,\tau_0^2\, x_1}{\den},
+\]
+\[
+  \boxed{\;
+  x_0 \mid x_1 \;\sim\; \Norm\!\left(
+  \frac{\sbeta\,\tau_0^2}{\den}\, x_1,\;\;
+  \frac{\beta\,\tau_0^2}{\den}
+  \right). \;}
+\]
+\textit{Check.} Jointly $\E[x_1] = 0$, $\Var(x_1) = (1-\beta)\tau_0^2 + \beta$ by total
+variance, and $\Cov(x_0, x_1) = \E[x_0 \,\E(x_1 \mid x_0)] = \sbeta\,\tau_0^2$; Gaussian
+conditioning, mean $\Cov(x_0,x_1)\,x_1 / \Var(x_1)$ and variance
+$\tau_0^2 - \Cov(x_0,x_1)^2 / \Var(x_1)$, reproduces both boxed expressions.
+
+The mean is $x_1 / \sbeta$, the inversion of the deterministic scaling, times
+$(1-\beta)\tau_0^2 / \big((1-\beta)\tau_0^2 + \beta\big)$, the share of $\Var(x_1)$ due
+to signal rather than injected noise; the posterior therefore shrinks that inversion
+toward the prior mean $0$. Its variance is free of $x_1$: an observation relocates the
+posterior without changing its spread.
+
+\textit{(b) Limits.} As $\beta \to 0$ the mean tends to $x_1$ and the variance to $0$: the
+step is the identity, so $x_1$ pins down $x_0$ exactly and the posterior is a point mass.
+As $\beta \to 1$ the mean tends to $0$ and the variance to $\tau_0^2$: $x_1$ is pure noise,
+the likelihood is flat, and the posterior falls back on the prior $\Norm(0, \tau_0^2)$.
+Since $d\sigma^2/d\beta = \tau_0^4 / \big(\den\big)^2 > 0$, the variance climbs
+monotonically between these limits, so $\beta$ sets how much of $x_0$ survives the step.
+
+\textit{(c) Graphical model.} The statement describes one $(x_0, x_1)$ pair; the plate
+shows the i.i.d.\ replication over $N$ of them. Shaded $x_1^{(n)}$ is observed, $x_0^{(n)}$
+is latent, and the fixed $\tau_0^2, \beta$ sit outside the plate, shared across all $n$.
+
+\centerline{%
+\begin{tikzpicture}[
+    scale=0.85, transform shape,
+    >={Stealth[length=2mm]},
+    latent/.style = {circle, draw, thick, minimum size=11mm, inner sep=1pt},
+    obs/.style    = {circle, draw, thick, fill=black!12, minimum size=11mm, inner sep=1pt},
+    hyper/.style  = {circle, fill=black, minimum size=1.8mm, inner sep=0pt},
+    node distance = 13mm
+  ]
+  \node[hyper, label={[label distance=1pt]left:$\tau_0^2$}] (tau) {};
+  \node[latent, right=of tau] (x0) {$x_0^{(n)}$};
+  \node[obs, right=of x0]     (x1) {$x_1^{(n)}$};
+  \node[hyper, right=13mm of x1, label={[label distance=1pt]right:$\beta$}] (beta) {};
+
+  \node[draw, thick, rounded corners, fit=(x0)(x1), inner sep=4.5mm] (plate) {};
+  \node[anchor=south east, inner sep=1pt, font=\small]
+       at ([shift={(-1.5mm,1.6mm)}]plate.south east) {$n = 1, \dots, N$};
+
+  \draw[->] (tau) -- (x0);
+  \draw[->] (x0)  -- (x1);
+  \draw[->] (beta) -- (x1);
+\end{tikzpicture}%
+}
+
+\newpage
+
+\textbf{Question 2: Discrete Conjugacy}
+
+\textit{(a) Posterior.} Write $\alpha_0 = \sum_{v=1}^V \alpha_v$ and
+$B(\bm a) = \prod_{v=1}^V \Gamma(a_v) / \Gamma\big(\sum_{v=1}^V a_v\big)$, so the prior
+density on the simplex $\simplex = \{\bm\pi : \pi_v \ge 0,\, \sum_v \pi_v = 1\}$ is
+$p(\bm\pi) = B(\bm\alpha)^{-1} \prod_{v=1}^V \pi_v^{\alpha_v - 1}$; equivalently
+$\int_{\simplex} \prod_{v=1}^V \pi_v^{a_v - 1} \, d\bm\pi = B(\bm a)$ for any $\bm a$ with
+positive entries, an identity reused in part~(b). The likelihood is where the counts appear.
+Writing one categorical draw as
+$p(y_i \mid \bm\pi) = \pi_{y_i} = \prod_{v=1}^V \pi_v^{\mathbf{1}\{y_i = v\}}$ and
+using conditional independence given $\bm\pi$,
+\[
+  p(y_1, \dots, y_n \mid \bm\pi)
+  = \prod_{i=1}^n \prod_{v=1}^V \pi_v^{\mathbf{1}\{y_i = v\}}
+  = \prod_{v=1}^V \pi_v^{\sum_{i=1}^n \mathbf{1}\{y_i = v\}}
+  = \prod_{v=1}^V \pi_v^{n_v},
+\]
+so the data enter only through the counts $(n_1, \dots, n_V)$, a sufficient statistic,
+and the likelihood is a product of powers of the $\pi_v$, matching the functional form
+of the prior. That is exactly why the family is closed under conditioning. Multiplying,
+\[
+  p(\bm\pi \mid y_1, \dots, y_n)
+  \;\propto\; \prod_{v=1}^V \pi_v^{\alpha_v - 1} \prod_{v=1}^V \pi_v^{n_v}
+  \;=\; \prod_{v=1}^V \pi_v^{(\alpha_v + n_v) - 1}.
+\]
+The right side is the Dirichlet kernel with parameters $\alpha_v + n_v > 0$; a density is
+pinned down by its kernel, so the normalizer is $B(\bm\alpha + \bm n)^{-1}$ and
+\[
+  \boxed{\; \bm\pi \mid y_1, \dots, y_n \;\sim\; \Dir(\alpha_1 + n_1, \,\dots,\, \alpha_V + n_V). \;}
+\]
+The prior parameters behave as pseudocounts: the data simply add $n_v$ to
+$\alpha_v$, and the concentration grows from $\alpha_0$ to $\alpha_0 + n$.
+
+\textit{(b) Posterior predictive.} Let $\bm\alpha' = \bm\alpha + \bm n$, so
+$\alpha_0' = \sum_u \alpha_u' = \alpha_0 + n$. Given $\bm\pi$ the next draw is independent
+of the previous ones, so conditioning on $\bm\pi$ and marginalizing it out,
+\[
+  p(y_{n+1} = v \mid y_{1:n})
+  = \int_{\simplex} p(y_{n+1} = v \mid \bm\pi) \, p(\bm\pi \mid y_{1:n}) \, d\bm\pi
+  = \int_{\simplex} \pi_v \, p(\bm\pi \mid y_{1:n}) \, d\bm\pi
+  = \E[\pi_v \mid y_{1:n}],
+\]
+the posterior mean of $\pi_v$. The extra factor of $\pi_v$ raises the $v$-th exponent by
+one, replacing $\bm\alpha'$ with $\bm\alpha' + \bm e_v$, so that same identity applies:
+\[
+  \E[\pi_v \mid y_{1:n}]
+  = \frac{1}{B(\bm\alpha')} \int_{\simplex} \prod_{u=1}^V \pi_u^{(\alpha_u' + \mathbf{1}\{u = v\}) - 1} \, d\bm\pi
+  = \frac{B(\bm\alpha' + \bm e_v)}{B(\bm\alpha')}
+  = \frac{\Gamma(\alpha_v' + 1)}{\Gamma(\alpha_v')} \cdot \frac{\Gamma(\alpha_0')}{\Gamma(\alpha_0' + 1)}
+  = \frac{\alpha_v'}{\alpha_0'},
+\]
+where the $u \neq v$ factors cancel and $\Gamma(z+1) = z\,\Gamma(z)$ is used twice.
+Hence
+\[
+  \boxed{\; p(y_{n+1} = v \mid y_1, \dots, y_n) = \frac{\alpha_v + n_v}{\alpha_0 + n},
+  \qquad \alpha_0 = \sum_{u=1}^V \alpha_u. \;}
+\]
+These sum to one over $v$, since $\sum_v (\alpha_v + n_v) = \alpha_0 + n$. Rewriting
+\vspace{-1ex}
+\[
+  \frac{\alpha_v + n_v}{\alpha_0 + n}
+  = \frac{n}{\alpha_0 + n} \cdot \frac{n_v}{n}
+  \;+\; \frac{\alpha_0}{\alpha_0 + n} \cdot \frac{\alpha_v}{\alpha_0}
+\]
+exhibits it as a convex combination of the maximum likelihood estimate $n_v / n$ and the
+prior mean $\alpha_v / \alpha_0$, with $\alpha_0$ an effective prior sample size: it tends
+to the MLE as $n \to \infty$ but keeps positive mass on every category even when
+$n_v = 0$. This is additive smoothing, which becomes Laplace smoothing when $\alpha_v = 1$.
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

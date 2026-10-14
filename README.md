@@ -4,6 +4,7 @@ Coursework and reader reports for Fall 2026.
 
 - [Course reading index](READINGS.md): all readings from the course page, organized by topic.
 - [Reader reports](reader_reports/): LaTeX reports.
+- [Homeworks](homeworks/): LaTeX problem sets.
 - [Report template](template/report.tex): shared template and preamble.
 - [Official reading list](https://www.cs.columbia.edu/~blei/fogm/2026F/readings.html).
 
