@@ -1,0 +1,66 @@
+\documentclass[12pt]{article}
+
+% Match weeks 2--4 using fonts available in the local TeX installation.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Week 5: Topic Models and Mixed-Membership Models} \\
+Jaisel Singh (js6897) \\
+October 14, 2026
+\end{flushleft}
+
+\vspace{0.1in}
+
+What stood out to me in Blei's review was the shift from clustering a document to
+clustering its words. A topic is a distribution over a fixed vocabulary, every
+document in the collection draws on the same topics, and what distinguishes one
+document from another is the proportion in which it uses them. Because a topic is
+chosen separately for each word, a single document can express several topics at
+once. That is what mixed membership means, and it is what a model assigning one
+cluster per document cannot represent. The generative story is short: draw topic
+proportions for a document, then for each word draw a topic assignment and draw a
+word from the corresponding topic. I noticed the Dirichlet-categorical structure
+sitting underneath both of those draws.
+
+What I found most useful was how cleanly the model separates from the computation.
+The words are observed and the topic structure (the topics, the per-document
+proportions, and the per-word assignments) is hidden, so fitting the model means
+computing a posterior over that hidden structure. Blei describes this as reversing
+the generative process. The obstacle is the evidence in the denominator, which sums
+the joint distribution over every way of assigning each observed word to a topic,
+and that count grows exponentially with the collection. This is the same wall we
+hit last week, and the responses are the same two families: sampling, usually Gibbs
+sampling, or variational approximation. It makes the MCMC material feel less like a
+separate topic and more like the machinery these models need in order to be fit at all.
+
+Boyd-Graber, Hu, and Mimno's survey complicated my sense of what a good fit means
+here. They report that held-out likelihood can correlate negatively with how
+interpretable readers find a model, since a model with more topics can predict
+held-out words better while being harder for a person to read. Automated coherence
+scores stand in for human judgment, but they do not establish that a model suits a
+particular application. My remaining question is how to set the number of topics and
+the Dirichlet hyperparameters when the quantity I can compute is not the quantity I
+actually care about.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Blei (2012), \href{https://www.cs.columbia.edu/~blei/fogm/readings/Blei2012.pdf}{\emph{Probabilistic Topic Models}};
+Boyd-Graber et al.\ (2017), \href{https://www.nowpublishers.com/article/Details/INR-030}{\emph{Applications of Topic Models}}.
+\par}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
