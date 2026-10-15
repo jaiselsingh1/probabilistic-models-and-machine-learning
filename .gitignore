@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Boston Marathon wall analysis: third-party race files and large sampler output
+data/
+experiments/marathon_wall/outputs/*.nc
+experiments/marathon_wall/outputs/metric*.csv
