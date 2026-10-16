@@ -133,9 +133,8 @@ using conditional independence given $\bm\pi$,
   = \prod_{v=1}^V \pi_v^{\sum_{i=1}^n \mathbf{1}\{y_i = v\}}
   = \prod_{v=1}^V \pi_v^{n_v},
 \]
-so the data enter only through the counts $(n_1, \dots, n_V)$, a sufficient statistic,
-and the likelihood is a product of powers of the $\pi_v$, matching the functional form
-of the prior. That is exactly why the family is closed under conditioning. Multiplying,
+so the counts $(n_1, \dots, n_V)$ are sufficient. The likelihood has the prior's
+product-of-powers form; multiplying adds the exponents:
 \[
   p(\bm\pi \mid y_1, \dots, y_n)
   \;\propto\; \prod_{v=1}^V \pi_v^{\alpha_v - 1} \prod_{v=1}^V \pi_v^{n_v}
@@ -157,32 +156,30 @@ of the previous ones, so conditioning on $\bm\pi$ and marginalizing it out,
   = \int_{\simplex} \pi_v \, p(\bm\pi \mid y_{1:n}) \, d\bm\pi
   = \E[\pi_v \mid y_{1:n}],
 \]
-the posterior mean of $\pi_v$. The extra factor of $\pi_v$ raises the $v$-th exponent by
-one, replacing $\bm\alpha'$ with $\bm\alpha' + \bm e_v$, so that same identity applies:
+The factor $\pi_v$ increments the $v$-th exponent, so the beta-function identity gives
 \[
+  \begin{aligned}
   \E[\pi_v \mid y_{1:n}]
-  = \frac{1}{B(\bm\alpha')} \int_{\simplex} \prod_{u=1}^V \pi_u^{(\alpha_u' + \mathbf{1}\{u = v\}) - 1} \, d\bm\pi
+  &= \frac{1}{B(\bm\alpha')} \int_{\simplex} \prod_{u=1}^V \pi_u^{(\alpha_u' + \mathbf{1}\{u = v\}) - 1} \, d\bm\pi
   = \frac{B(\bm\alpha' + \bm e_v)}{B(\bm\alpha')}
-  = \frac{\Gamma(\alpha_v' + 1)}{\Gamma(\alpha_v')} \cdot \frac{\Gamma(\alpha_0')}{\Gamma(\alpha_0' + 1)}
-  = \frac{\alpha_v'}{\alpha_0'},
+  \\
+  &= \frac{\Gamma(\alpha_v' + 1)}{\Gamma(\alpha_v')} \cdot \frac{\Gamma(\alpha_0')}{\Gamma(\alpha_0' + 1)}
+  = \frac{\alpha_v'}{\alpha_0'}.
+  \end{aligned}
 \]
-where the $u \neq v$ factors cancel and $\Gamma(z+1) = z\,\Gamma(z)$ is used twice.
+The $u \neq v$ factors cancel and $\Gamma(z+1) = z\,\Gamma(z)$ is used twice.
 Hence
 \[
   \boxed{\; p(y_{n+1} = v \mid y_1, \dots, y_n) = \frac{\alpha_v + n_v}{\alpha_0 + n},
   \qquad \alpha_0 = \sum_{u=1}^V \alpha_u. \;}
 \]
-These sum to one over $v$, since $\sum_v (\alpha_v + n_v) = \alpha_0 + n$. For $n>0$,
-\vspace{-1ex}
-\[
-  \frac{\alpha_v + n_v}{\alpha_0 + n}
-  = \frac{n}{\alpha_0 + n} \cdot \frac{n_v}{n}
-  \;+\; \frac{\alpha_0}{\alpha_0 + n} \cdot \frac{\alpha_v}{\alpha_0}
-\]
-exhibits it as a convex combination of the maximum likelihood estimate $n_v / n$ and the
-prior mean $\alpha_v / \alpha_0$, with $\alpha_0$ an effective prior sample size: it tends
-to the MLE as $n \to \infty$ but keeps positive mass on every category even when
-$n_v = 0$. This is additive smoothing, which becomes Laplace smoothing when $\alpha_v = 1$.
+The probabilities sum to one since $\sum_v (\alpha_v+n_v)=\alpha_0+n$.
+For $n>0$, the predictive is
+$\frac{n}{\alpha_0+n}\frac{n_v}{n}+\frac{\alpha_0}{\alpha_0+n}\frac{\alpha_v}{\alpha_0}$,
+a convex combination of the MLE and prior mean. Thus $\alpha_0$ is an effective
+prior sample size: prediction tends to the MLE as $n\to\infty$ and remains
+positive for unseen categories. This is additive smoothing; $\alpha_v=1$ gives
+Laplace smoothing.
 
 
 % >>> Q3 BEGIN (audited analysis)
@@ -202,17 +199,17 @@ approximation need not identify two physiological states.
 \href{https://github.com/llimllib/bostonmarathon}{\textnormal{llimllib/bostonmarathon}}
 scrape of BAA results. Its scraper retrieves
 individual race-result pages and exports cumulative checkpoint times in minutes,
-rounded to two decimals. The 2013 and 2014 files contain 16,164 and 31,984 rows;
+rounded to two decimals. The 2013 and 2014 files contain \auditRawYearThirteen{} and \auditRawYearFourteen{} rows;
 variables include bib, recorded sex, age, and times at 5, 10, 20, 21.0975, 25, 30,
 35, 40 and 42.195\,km. A row is a race performance, not necessarily a distinct
 person across years; the exported files omit the 15\,km split.
 
-I remove 105 wheelchair records, seven repeated bibs within a year, and 41 records
+I remove \auditWheelchairN{} wheelchair records, \auditDuplicateN{} repeated bibs within a year, and \auditPaceExcludedN{} records
 with an available segment pace outside the screening range 2--20\,min/km.
 Missing tokens and nonpositive times become missing; non-increasing cumulative
-times would also be blanked (none occur here). The loader interpolates isolated
+times would also be blanked (\auditNonmonotoneN{} occur here). The loader interpolates isolated
 interior gaps, but the analysis requires all four defining endpoints to be
-observed, excluding another 304 records: \auditN{} remain, 457 fewer than the raw
+observed, excluding another \auditEndpointExcludedN{} records: \auditN{} remain, \auditExcludedN{} fewer than the raw
 files. A missing split's cause is unknown, and the slow-pace cutoff can remove a
 real stop, so these are selection decisions rather than proof of faulty timing.
 
@@ -224,14 +221,17 @@ For cumulative time $T_d$ at distance $d$, define
 \]
 Here $a_i$ is baseline pace and $r_i>0$ means the 30--40\,km window was slower.
 Negative $y_i$ means less slowing than the reference, not necessarily a faster
-late pace. The reference is the training sample's 25th percentile of $r$ in 40 baseline-pace
+late pace. The reference is the training sample's 25th percentile of $r$ in \auditReferenceBins{} baseline-pace
 bins, interpolated between bin medians and held constant beyond them.
 Figure~\ref{fig:audit-wall}a explores the raw relationship; panels b--c show the
 centered distributions. This is empirical centering, \emph{not} a terrain
 correction: the 30--40\,km window still includes Heartbreak Hill
 (\href{https://www.baa.org/wp-content/uploads/docs/2025-03/129thBM_SpectatorGuide.pdf}{BAA course map}).
-Pace reflects strategy and fatigue as well as ability, and shifting different
-pace strata can change the pooled shape.
+The pooled rise near 5.5--6\,min/km is consistent with
+\href{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0093800}{2013 interruption-related}
+finish-time truncation and changing year composition; fitting both the reference
+and models on 2014 training records alone gives \auditGainYearFourteenSeparate{}
+held-out nats over the skew-normal (s.e.\ \auditSeYearFourteenSeparate).
 
 \textit{(3) Scope and limitations, set before the refit.} These records can assess
 density fit in the observed sample, but contain no direct observation of glycogen
@@ -249,7 +249,7 @@ and the latent-class model
  z_i\sim\mathrm{Bernoulli}(\pi_g),\qquad
  y_i\mid z_i=k\sim\Norm(\mu_{k,g},\sigma_{k,g}^2),\quad \mu_{0,g}<\mu_{1,g}.
 \]
-I split records 80/20 within groups (seed 20261016; \auditTrainN{} training,
+I split records 80/20 within groups (seed \auditSeed; \auditTrainN{} training,
 \auditTestN{} held out), estimate the reference only on training records, and fit
 by maximum likelihood: closed form for $\mathcal M_0$, six-start numerical
 optimization for $\mathcal M_s$, and six-start EM for the mixture, alternating
@@ -292,22 +292,25 @@ include all tails; the mixture still shows misfit.}
 
 The primary gain is \auditGainSkewPerRunner{} nats per record over the
 skew-normal, and \auditGainGauss{} total nats (s.e.\ \auditSeGauss) over the
-Gaussian. The advantage persists across references and in the 2014 held-out
-subset (\auditGainYearFourteen{} nats, s.e.\ \auditSeYearFourteen{}, using the shared
-training reference). Yet all \auditGroups{} fitted group mixture densities have
-only \emph{one} mode on a dense grid. Their higher-mean components are wider and
-dominate both extreme tails, including negative $y$, so component membership does
-not identify a directional slowdown. The mixture improves these density
-approximations; it establishes neither two biological regimes nor wall prevalence.
-A skew-normal is only one possible unimodal alternative.
+Gaussian. Using each group's training \auditBulkLowerPercentile th/\auditBulkUpperPercentile th percentiles to fix the regions,
+the central interval contributes \auditGainBulk{} nats (\auditGainBulkPercent\% of the
+net gain), the upper tail \auditGainRightTail{} (\auditGainRightTailPercent\%),
+and the lower tail \auditGainLeftTail{} (\auditGainLeftTailPercent\%); signed
+contributions can cancel. All \auditGroups{} primary mixture densities have one mode.
+Their component SD ratios $\hat\sigma_{1,g}/\hat\sigma_{0,g}$ range
+\auditSdRatioMin--\auditSdRatioMax{} (variance ratios
+\auditVarianceRatioMin--\auditVarianceRatioMax). The wider higher-mean component
+has responsibility $>1/2$ in both tails: its left crossover $y^*_{\mathrm{left},g}$
+ranges from \auditLeftCrossoverMin{} to \auditLeftCrossoverMax{}, below which it
+dominates despite negative centered $y$. Membership thus does not identify
+directional slowing or physiological wall states. A skew-normal is only one
+possible unimodal alternative.
 
-\textit{(6) Next step.} I would compare segment trajectories with independently
-recorded exhaustion onset in a new, uninterrupted race, including nonfinishers.
-The refined question is whether an abrupt, sustained slowdown coincides with that
-observation after accounting for course location and initial pacing. This tests
-what the latent label means. The current split is an internal diagnostic:
-an earlier draft explored these data, and the sensitivity rows reuse the test
-set, so neither is independent confirmation.
+\textit{(6) Next step.} In a new, uninterrupted race including nonfinishers, I would
+compare segment trajectories with independently recorded exhaustion onset,
+accounting for course location and initial pacing. This tests whether abrupt,
+sustained slowing coincides with exhaustion. The current split remains an internal
+diagnostic: earlier work explored these data, and all sensitivities reuse the holdout.
 
 } % end small
 % <<< Q3 END

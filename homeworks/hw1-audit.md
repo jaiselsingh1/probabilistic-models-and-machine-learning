@@ -65,6 +65,20 @@ Eleven regression tests cover mixed-format and missing clocks, observed-endpoint
 
 ## What to be able to explain
 
+### Follow-up: separate 2014 reference and numerical mixture criticism
+
+The `q25_2014` sensitivity preserves the original 2014 train/test assignment and refits both the reference and all models using only 2014 training records. Its mixture-minus-skew-normal gain is 169.8 nats (conditional SE 41.4), compared with 179.9 (42.1) for the original 2014 subset under pooled preprocessing. The primary four variants and their numerical results are unchanged.
+
+The primary component SD ratios range from 2.117 to 2.463; the variance ratios are their squares, 4.481 to 6.065. Solving equality of the **weighted** component densities gives left responsibility crossovers from −0.159 to −0.135 in centered response units. Below each group's left crossover the broader higher-mean component has responsibility above 50%. Actual speedup requires raw log ratio below zero, not merely negative centered response.
+
+An exhaustive score decomposition fixes each group's boundaries at its training response 5th and 95th percentiles. The central interval contributes −28.0 nats (−11.4% of net gain), the right tail +196.0 (80.0%), and the left tail +76.9 (31.4%). Thus the observed mode-height difference does not establish positive net bulk performance. Full-precision group values and boundaries are exported in `hw1/results/`.
+
+The training share from 2013 falls from 41.5% at 5–5.5 min/km to 20.1% at 5.5–6 and 1.9% at 6–6.5. The kink is consistent with interruption-related selection and changing year composition, but is not proven to be caused solely by pooling. [Hammerling et al. (2014)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0093800), a study commissioned by the BAA, reports that the last wave started at 10:40 a.m., the last runner started at 10:53 a.m., and the explosions occurred at 2:49 p.m.; 4:09 is not a universal net-time cutoff. The raw 2013 file contains finishes beyond that duration.
+
+The follow-up verifier passes on 44,483 pointwise rows, 56 comparisons, four rebuilt training references, 18 mixture-mode checks, eight crossover roots, 15 gain-partition rows, six year-composition rows, and 53 generated macros. All 14 pytest tests pass. Q2(b) now uses a two-line aligned derivation; the rebuilt PDF remains four pages with zero overfull boxes and all pages visually checked.
+
+### Interpretation
+
 - Why two mixture components can give a one-peaked density, and why predictive fit does not establish biological classes.
 - Why the reference must be trained without test outcomes, and why it still is not a causal terrain correction.
 - Why a large sample gives precise conditional estimates without resolving selection bias or unidentified physiology.

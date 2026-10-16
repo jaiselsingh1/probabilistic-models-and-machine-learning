@@ -32,6 +32,9 @@ from .data import SCHEMAS, load_races
 from .metric import MetricWindows, TerrainReference, segment_pace
 
 SEED = 20261016
+REFERENCE_BINS = 40
+REFERENCE_MIN_PER_BIN = 50
+GAIN_QUANTILES = (.05, .95)
 MODEL_NAMES = ("gaussian", "skewnormal", "mixture")
 COLORS = {"gaussian": "#7d8793", "skewnormal": "#c17c22", "mixture": "#236c8c"}
 
@@ -182,6 +185,85 @@ def count_modes(p: dict) -> int:
     return int(len(maxima))
 
 
+def mixture_crossover_diagnostics(p: dict) -> dict:
+    """Solve weighted component equality, not equality of unweighted PDFs.
+
+    The upper component has posterior responsibility above one half exactly
+    where this quadratic log odds is positive. When it is wider and has two
+    crossings, this holds below the left root and above the right root. A
+    negative reference-centered response is not necessarily a raw speedup.
+    """
+    s0, s1 = p["sigma_lower"], p["sigma_upper"]
+    m0, m1, w = p["mu_lower"], p["mu_upper"], p["weight_upper"]
+    a = .5 * (s0 ** -2 - s1 ** -2)
+    b = m1 / s1 ** 2 - m0 / s0 ** 2
+    c = np.log(w) - np.log1p(-w) + np.log(s0 / s1) + .5 * (m0 ** 2 / s0 ** 2 - m1 ** 2 / s1 ** 2)
+    roots = np.roots([a, b, c]) if a != 0 else np.roots([b, c])
+    real_roots = sorted(float(z.real) for z in roots if abs(z.imag) < 1e-10)
+    two_roots = len(real_roots) == 2
+    return {"sd_ratio": float(s1 / s0), "variance_ratio": float((s1 / s0) ** 2),
+            "log_odds_quadratic": float(a), "log_odds_linear": float(b), "log_odds_constant": float(c),
+            "n_real_crossovers": len(real_roots),
+            "left_crossover_y": real_roots[0] if two_roots else None,
+            "right_crossover_y": real_roots[1] if two_roots else None,
+            "upper_component_dominates_both_extreme_tails": bool(a > 0)}
+
+
+def training_gain_thresholds(frame, train, reference) -> dict:
+    """Fix the bulk/tail boundaries from training responses within each group."""
+    training = frame.loc[train].copy()
+    training["y"] = training["raw_ratio"].to_numpy() - reference.predict(training["ability"])
+    return {group: tuple(float(v) for v in np.quantile(sub["y"], GAIN_QUANTILES))
+            for group, sub in training.groupby("group", observed=True)}
+
+
+def score_gain_partition(frame, train, scores, reference) -> pd.DataFrame:
+    """An exhaustive decomposition of the primary mixture-minus-skew score gain.
+
+    Boundaries are each group's training response 5th/95th percentiles. The
+    central interval includes its endpoints. Percentages use the *global* net
+    gain as denominator, so negative contributions are retained, not clipped.
+    This descriptive localization does not select or refit either model.
+    """
+    thresholds = training_gain_thresholds(frame, train, reference)
+    total = float((scores["logp_mixture"] - scores["logp_skewnormal"]).sum())
+    rows = []
+    for group, sub in scores.groupby("group", observed=True):
+        lower, upper = thresholds[group]
+        values = sub["y"].to_numpy()
+        masks = {"left": values < lower, "central": (values >= lower) & (values <= upper),
+                 "right": values > upper}
+        gains = (sub["logp_mixture"] - sub["logp_skewnormal"]).to_numpy()
+        for region, mask in masks.items():
+            gain = float(gains[mask].sum())
+            rows.append({"group": group, "region": region, "n_test": int(mask.sum()),
+                         "gain_total_nats": gain, "percent_of_total_gain": 100 * gain / total,
+                         "training_q05": lower, "training_q95": upper})
+    groups = pd.DataFrame(rows)
+    for region in ("left", "central", "right"):
+        sub = groups.loc[groups["region"] == region]
+        gain = float(sub["gain_total_nats"].sum())
+        rows.append({"group": "all", "region": region, "n_test": int(sub["n_test"].sum()),
+                     "gain_total_nats": gain, "percent_of_total_gain": 100 * gain / total,
+                     "training_q05": None, "training_q95": None})
+    return pd.DataFrame(rows)
+
+
+def training_year_composition(frame, train) -> pd.DataFrame:
+    """Descriptive year mix near the plotted kink; not an estimate of censoring."""
+    training = frame.loc[train]
+    rows = []
+    for lower, upper in ((5., 5.5), (5.5, 6.), (6., 6.5)):
+        in_bin = training.loc[(training["ability"] >= lower) & (training["ability"] < upper)]
+        for year in sorted(frame["year"].unique()):
+            sub = in_bin.loc[in_bin["year"] == year, "raw_ratio"]
+            rows.append({"baseline_pace_lower": lower, "baseline_pace_upper": upper, "year": int(year),
+                         "n_train": len(sub), "share_of_bin": float(len(sub) / len(in_bin)) if len(in_bin) else None,
+                         "raw_ratio_q25": float(sub.quantile(.25)) if len(sub) else None,
+                         "raw_ratio_median": float(sub.median()) if len(sub) else None})
+    return pd.DataFrame(rows)
+
+
 def score_comparisons(scores: pd.DataFrame, variant: str) -> list[dict]:
     rows = []
     subsets = [("all", scores)]
@@ -209,7 +291,8 @@ def fit_variant(frame: pd.DataFrame, train: np.ndarray, quantile: float | None):
     y = frame["raw_ratio"].to_numpy().copy()
     if quantile is not None:
         reference = TerrainReference.fit(frame.loc[train, "raw_ratio"], frame.loc[train, "ability"],
-                                         quantile=quantile, n_bins=40)
+                                         quantile=quantile, n_bins=REFERENCE_BINS,
+                                         min_per_bin=REFERENCE_MIN_PER_BIN)
         y -= reference.predict(frame["ability"])
     fitted = {}
     scores = frame.loc[~train, ["row_id", "year", "sex", "bib", "group"]].copy()
@@ -235,6 +318,17 @@ def fit_variant(frame: pd.DataFrame, train: np.ndarray, quantile: float | None):
     if not np.isfinite(scores[[f"logp_{name}" for name in MODEL_NAMES]].to_numpy()).all():
         raise RuntimeError("Nonfinite held-out log score")
     return fitted, scores, reference
+
+
+def fit_year_variant(frame: pd.DataFrame, train: np.ndarray, year: int, quantile: float = .25):
+    """Refit both reference and models within a year, preserving the split.
+
+    Keep row_id from the pooled cohort so the independent verifier can trace
+    every held-out record back to the original split. No records are resplit.
+    """
+    member = (frame["year"] == year).to_numpy()
+    subset = frame.loc[member].copy().reset_index(drop=True)
+    return fit_variant(subset, train[member], quantile)
 
 
 def make_figure(frame, train, fitted, scores, reference, output):
@@ -283,7 +377,7 @@ def make_figure(frame, train, fitted, scores, reference, output):
     plt.close(fig)
 
 
-def make_macros(frame, train, comparisons, fits, output):
+def make_macros(frame, train, comparisons, fits, hygiene, mixture_diagnostics, gain_partition, output):
     table = comparisons.loc[comparisons["group"] == "all"].set_index(["variant", "comparison"])
     primary_skew = table.loc[("q25", "mixture_minus_skewnormal")]
     primary_gauss = table.loc[("q25", "mixture_minus_gaussian")]
@@ -294,6 +388,18 @@ def make_macros(frame, train, comparisons, fits, output):
               "auditSeSkewPerRunner": f"{primary_skew['se_per_runner_nats']:.4f}",
               "auditGainGauss": f"{primary_gauss['gain_total_nats']:.1f}",
               "auditSeGauss": f"{primary_gauss['se_total_nats']:.1f}"}
+    raw_rows = hygiene.loc[hygiene["step"] == "rows in raw file"]
+    raw_n = int(raw_rows["n_before"].sum())
+    macros.update(auditRawN=f"{raw_n:,}", auditExcludedN=f"{raw_n - len(frame):,}",
+                  auditSeed=str(SEED), auditReferenceBins=str(REFERENCE_BINS))
+    for year, suffix in ((2013, "Thirteen"), (2014, "Fourteen")):
+        macros[f"auditRawYear{suffix}"] = f"{int(raw_rows.loc[raw_rows['race'] == f'llimllib-{year}', 'n_before'].sum()):,}"
+    for suffix, step in (("Wheelchair", "drop wheelchair / handcycle / push-rim"),
+                         ("Duplicate", "drop duplicate bibs"),
+                         ("PaceExcluded", "drop segment pace outside"),
+                         ("EndpointExcluded", "require real positive metric endpoints")):
+        macros[f"audit{suffix}N"] = f"{int(hygiene.loc[hygiene['step'].str.startswith(step), 'dropped'].sum()):,}"
+    macros["auditNonmonotoneN"] = f"{int(hygiene.groupby('race')['blanked_mats'].first().sum()):,}"
     for variant, suffix in (("raw", "Raw"), ("q10", "Ten"), ("q50", "Fifty")):
         row = table.loc[(variant, "mixture_minus_skewnormal")]
         macros[f"auditGain{suffix}"] = f"{row['gain_total_nats']:.1f}"
@@ -303,6 +409,24 @@ def make_macros(frame, train, comparisons, fits, output):
                                & (comparisons["comparison"] == "mixture_minus_skewnormal")].iloc[0]
     macros["auditGainYearFourteen"] = f"{year_row['gain_total_nats']:.1f}"
     macros["auditSeYearFourteen"] = f"{year_row['se_total_nats']:.1f}"
+    separate = table.loc[("q25_2014", "mixture_minus_skewnormal")]
+    macros["auditGainYearFourteenSeparate"] = f"{separate['gain_total_nats']:.1f}"
+    macros["auditSeYearFourteenSeparate"] = f"{separate['se_total_nats']:.1f}"
+    for field, suffix in (("sd_ratio", "SdRatio"), ("variance_ratio", "VarianceRatio"),
+                          ("left_crossover_y", "LeftCrossover")):
+        macros[f"audit{suffix}Min"] = f"{mixture_diagnostics[field].min():.3f}"
+        macros[f"audit{suffix}Max"] = f"{mixture_diagnostics[field].max():.3f}"
+    for group, suffix in (("F x 2013", "FemaleThirteen"), ("F x 2014", "FemaleFourteen"),
+                          ("M x 2013", "MaleThirteen"), ("M x 2014", "MaleFourteen")):
+        value = mixture_diagnostics.loc[mixture_diagnostics["group"] == group, "left_crossover_y"].iloc[0]
+        macros[f"auditLeftCrossover{suffix}"] = f"{value:.3f}"
+    for region, suffix in (("central", "Bulk"), ("right", "RightTail"), ("left", "LeftTail")):
+        row = gain_partition.loc[(gain_partition["group"] == "all") & (gain_partition["region"] == region)].iloc[0]
+        macros[f"auditGain{suffix}"] = f"{row['gain_total_nats']:.1f}"
+        macros[f"auditGain{suffix}Percent"] = f"{row['percent_of_total_gain']:.1f}"
+        macros[f"audit{suffix}N"] = f"{int(row['n_test']):,}"
+    macros["auditBulkLowerPercentile"] = str(round(100 * GAIN_QUANTILES[0]))
+    macros["auditBulkUpperPercentile"] = str(round(100 * GAIN_QUANTILES[1]))
     modes = [g["parameters"]["mixture"]["density_modes"] for g in fits["q25"].values()]
     macros["auditUnimodalGroups"] = str(sum(mode == 1 for mode in modes))
     macros["auditGroups"] = str(len(modes))
@@ -345,20 +469,59 @@ def main(argv=None):
             references[variant] = reference
         if variant == "q25":
             make_figure(frame, train, fitted, scores, reference, args.fig_dir / "audit_wall.pdf")
+    print("Fitting q25_2014 (2014-only reference and models, original split) ...", flush=True)
+    fitted, scores, reference = fit_year_variant(frame, train, 2014)
+    fitted_variants["q25_2014"] = fitted
+    score_frames.append(scores.assign(variant="q25_2014"))
+    comparison_rows.extend(score_comparisons(scores, "q25_2014"))
+    reference.to_frame().to_csv(args.out_dir / "reference_q25_2014.csv", index=False)
+    references["q25_2014"] = reference
     comparisons = pd.DataFrame(comparison_rows)
     comparisons.to_csv(args.out_dir / "comparisons.csv", index=False)
     all_scores = pd.concat(score_frames, ignore_index=True)
     all_scores.to_csv(args.out_dir / "heldout_scores.csv", index=False)
+    mixture_diagnostics = pd.DataFrame([
+        {"group": group, **mixture_crossover_diagnostics(fit["parameters"]["mixture"])}
+        for group, fit in fitted_variants["q25"].items()])
+    mixture_diagnostics.to_csv(args.out_dir / "mixture_diagnostics.csv", index=False)
+    primary_scores = all_scores.loc[all_scores["variant"] == "q25"]
+    gain_partition = score_gain_partition(frame, train, primary_scores, references["q25"])
+    gain_partition.to_csv(args.out_dir / "score_gain_partition.csv", index=False)
+    composition = training_year_composition(frame, train)
+    composition.to_csv(args.out_dir / "training_year_composition.csv", index=False)
+    diagnostics = {
+        "variant": "q25", "comparison": "mixture_minus_skewnormal",
+        "component_definition": "Lower and upper refer to fitted means, not physiological states.",
+        "crossover_definition": "Roots of log[w*Normal(y;mu_upper,sigma_upper)/((1-w)*Normal(y;mu_lower,sigma_lower))]; responsibility_upper > 0.5 where log odds > 0.",
+        "response_interpretation": "y < 0 means less slowing than the fitted baseline-pace reference; actual speeding up requires raw_ratio < 0.",
+        "sd_ratio_definition": "sigma_upper / sigma_lower; the variance ratio is its square.",
+        "gain_partition_definition": {
+            "training_quantiles": list(GAIN_QUANTILES), "thresholds": "Separate within each primary sex/year training group.",
+            "regions": {"left": "y < training q05", "central": "training q05 <= y <= training q95", "right": "y > training q95"},
+            "percentage_denominator": "The total primary held-out mixture-minus-skewnormal net gain, pooled across groups.",
+            "interpretation": "An exhaustive descriptive localization of net score gain; negative regional contributions are retained. It does not prove that mode height caused the gain."},
+        "mixture": mixture_diagnostics.to_dict(orient="records"),
+        "score_gain_partition": gain_partition.astype(object).where(pd.notna(gain_partition), None).to_dict(orient="records"),
+        "year_composition_definition": "Training counts and raw log-ratio summaries in fixed baseline-pace intervals [5,5.5), [5.5,6), [6,6.5); these cannot identify the causal effect of race interruption.",
+        "training_year_composition": composition.to_dict(orient="records")}
+    (args.out_dir / "diagnostics.json").write_text(json.dumps(diagnostics, indent=2) + "\n")
     raw_n = int(hygiene.loc[hygiene["step"] == "rows in raw file", "n_before"].sum())
     metadata = {"seed": SEED, "train_fraction": .8, "n_raw": raw_n, "n_excluded": raw_n - len(frame),
                 "n": len(frame), "n_train": int(train.sum()),
                 "n_test": int((~train).sum()), "method": "maximum likelihood, per sex/year group",
                 "primary_variant": "q25", "metric": "log(pace 30-40km / pace 10-25km)",
-                "reference": "40-bin conditional quantile, fit only on training records",
+                "reference": f"{REFERENCE_BINS}-bin conditional quantile, fit only on training records",
+                "reference_n_bins": REFERENCE_BINS, "reference_min_per_bin": REFERENCE_MIN_PER_BIN,
+                "variant_training": {
+                    variant: {"reference_quantile": quantile, "fit_years": years,
+                              "reference_years": years if quantile is not None else []}
+                    for variant, quantile, years in (("q25", .25, [2013, 2014]), ("raw", None, [2013, 2014]),
+                                                     ("q10", .1, [2013, 2014]), ("q50", .5, [2013, 2014]),
+                                                     ("q25_2014", .25, [2014]))},
                 "uncertainty": "paired held-out log-score SE, conditional on the trained fits and treating records as independent",
                 "limitations": ["Finisher-only selection; 2013 race interruption", "No inference about biological states or wall prevalence",
                                 "Random holdout measures within-year prediction, not a future race", "Repeat runners across years are not identified",
-                                "2014-only score rows retain the training reference estimated using both years",
+                                "Within q25, the 2014-only score subset retains the pooled training reference; q25_2014 separately refits the reference and models using only original 2014 training records",
                                 "The existing all-data draft informed this audit; the holdout is an internal refitting diagnostic, not pristine confirmation",
                                 "Sensitivity variants share the same heldout set and are not independent confirmations",
                                 "One split does not quantify training-set or model-selection uncertainty"],
@@ -367,7 +530,8 @@ def main(argv=None):
                 "inputs_sha256": {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path, _ in sources.values()},
                 "fits": fitted_variants}
     (args.out_dir / "results.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    make_macros(frame, train, comparisons, fitted_variants, args.fig_dir / "audit_numbers.tex")
+    make_macros(frame, train, comparisons, fitted_variants, hygiene, mixture_diagnostics,
+                gain_partition, args.fig_dir / "audit_numbers.tex")
     print(comparisons.loc[comparisons["group"] == "all"].to_string(index=False))
     return 0
 

@@ -1,9 +1,16 @@
 {
   "status": "passed",
-  "pointwise_rows_checked": 38156,
-  "maximum_log_density_error": 3.552713678800501e-14,
-  "comparison_rows_checked": 48,
-  "all_sixteen_mixtures_have_one_derivative_root": true,
+  "pointwise_rows_checked": 44483,
+  "maximum_log_density_error": 0.0,
+  "comparison_rows_checked": 56,
+  "references_rebuilt_from_training_only": [
+    "q25",
+    "q10",
+    "q50",
+    "q25_2014"
+  ],
+  "mixtures_checked": 18,
+  "all_mixtures_have_one_derivative_root": true,
   "derivative_roots": {
     "q25:F x 2013": 0.013128463939495284,
     "q25:F x 2014": 0.03749508240580913,
@@ -20,7 +27,13 @@
     "q50:F x 2013": -0.033624308055368486,
     "q50:F x 2014": -0.01511132945631857,
     "q50:M x 2013": -0.014314242642728353,
-    "q50:M x 2014": 0.019015005866738797
+    "q50:M x 2014": 0.019015005866738797,
+    "q25_2014:F x 2014": 0.02876692611769631,
+    "q25_2014:M x 2014": 0.05980495549239247
   },
-  "scope": "Independent score/SE/response recomputation; numerical mode cross-check, not proof of global optimization."
+  "responsibility_crossovers_checked": 8,
+  "gain_partition_rows_checked": 15,
+  "year_composition_rows_checked": 6,
+  "latex_macros_checked": 53,
+  "scope": "Independent split/reference/score/SE/response/tail/bulk/macro recomputation; numerical mode cross-check, not proof of global optimization or an audit of raw data collection."
 }

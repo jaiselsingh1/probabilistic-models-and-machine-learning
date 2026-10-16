@@ -10,13 +10,67 @@
   "primary_variant": "q25",
   "metric": "log(pace 30-40km / pace 10-25km)",
   "reference": "40-bin conditional quantile, fit only on training records",
+  "reference_n_bins": 40,
+  "reference_min_per_bin": 50,
+  "variant_training": {
+    "q25": {
+      "reference_quantile": 0.25,
+      "fit_years": [
+        2013,
+        2014
+      ],
+      "reference_years": [
+        2013,
+        2014
+      ]
+    },
+    "raw": {
+      "reference_quantile": null,
+      "fit_years": [
+        2013,
+        2014
+      ],
+      "reference_years": []
+    },
+    "q10": {
+      "reference_quantile": 0.1,
+      "fit_years": [
+        2013,
+        2014
+      ],
+      "reference_years": [
+        2013,
+        2014
+      ]
+    },
+    "q50": {
+      "reference_quantile": 0.5,
+      "fit_years": [
+        2013,
+        2014
+      ],
+      "reference_years": [
+        2013,
+        2014
+      ]
+    },
+    "q25_2014": {
+      "reference_quantile": 0.25,
+      "fit_years": [
+        2014
+      ],
+      "reference_years": [
+        2014
+      ]
+    }
+  },
   "uncertainty": "paired held-out log-score SE, conditional on the trained fits and treating records as independent",
   "limitations": [
     "Finisher-only selection; 2013 race interruption",
     "No inference about biological states or wall prevalence",
     "Random holdout measures within-year prediction, not a future race",
     "Repeat runners across years are not identified",
-    "2014-only score rows retain the training reference estimated using both years",
+    "Within q25, the 2014-only score subset retains the pooled training reference; q25_2014 separately refits the reference and models using only original 2014 training records",
     "The existing all-data draft informed this audit; the holdout is an internal refitting diagnostic, not pristine confirmation",
     "Sensitivity variants share the same heldout set and are not independent confirmations",
     "One split does not quantify training-set or model-selection uncertainty"
@@ -626,6 +680,82 @@
             "mean_log_likelihood": 0.7922349571997592,
             "converged_start_objective_range": 4.4295961343365775e-10,
             "scale_floor": 0.0024317012938926607,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      }
+    },
+    "q25_2014": {
+      "F x 2014": {
+        "n_train": 11348,
+        "n_test": 2837,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.04773681274967391,
+            "sigma": 0.09673793308680272,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 2.623307509816273,
+            "loc": -0.05298993561354401,
+            "scale": 0.1396571001473089,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.02752116551065762,
+            "mu_upper": 0.14776547431274678,
+            "sigma_lower": 0.06342528560930383,
+            "sigma_upper": 0.1540475357274253,
+            "weight_upper": 0.16812144741327711,
+            "iterations": 121,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.037189864528574,
+            "converged_start_objective_range": 8.317893041009938e-10,
+            "scale_floor": 0.0019347586617360544,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2014": {
+        "n_train": 13958,
+        "n_test": 3490,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.09660769727035816,
+            "sigma": 0.12175269631384042,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 3.644199602729771,
+            "loc": -0.04105947176906578,
+            "scale": 0.18378239701455326,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.05607049682789359,
+            "mu_upper": 0.20578389947779052,
+            "sigma_lower": 0.07346425319588425,
+            "sigma_upper": 0.15448934059002312,
+            "weight_upper": 0.27076534047696693,
+            "iterations": 136,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 0.7899549167388014,
+            "converged_start_objective_range": 3.049386854137026e-10,
+            "scale_floor": 0.0024350539262768083,
             "floor_active": false,
             "density_modes": 1,
             "upper_component_dominates_both_extreme_tails": true

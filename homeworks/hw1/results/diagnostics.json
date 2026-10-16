@@ -1,0 +1,266 @@
+{
+  "variant": "q25",
+  "comparison": "mixture_minus_skewnormal",
+  "component_definition": "Lower and upper refer to fitted means, not physiological states.",
+  "crossover_definition": "Roots of log[w*Normal(y;mu_upper,sigma_upper)/((1-w)*Normal(y;mu_lower,sigma_lower))]; responsibility_upper > 0.5 where log odds > 0.",
+  "response_interpretation": "y < 0 means less slowing than the fitted baseline-pace reference; actual speeding up requires raw_ratio < 0.",
+  "sd_ratio_definition": "sigma_upper / sigma_lower; the variance ratio is its square.",
+  "gain_partition_definition": {
+    "training_quantiles": [
+      0.05,
+      0.95
+    ],
+    "thresholds": "Separate within each primary sex/year training group.",
+    "regions": {
+      "left": "y < training q05",
+      "central": "training q05 <= y <= training q95",
+      "right": "y > training q95"
+    },
+    "percentage_denominator": "The total primary held-out mixture-minus-skewnormal net gain, pooled across groups.",
+    "interpretation": "An exhaustive descriptive localization of net score gain; negative regional contributions are retained. It does not prove that mode height caused the gain."
+  },
+  "mixture": [
+    {
+      "group": "F x 2013",
+      "sd_ratio": 2.26519278192688,
+      "variance_ratio": 5.131098339293637,
+      "log_odds_quadratic": 167.96259640709675,
+      "log_odds_linear": 3.8133451997148136,
+      "log_odds_constant": -2.96592268609053,
+      "n_real_crossovers": 2,
+      "left_crossover_y": -0.14472004036660455,
+      "right_crossover_y": 0.12201650230940354,
+      "upper_component_dominates_both_extreme_tails": true
+    },
+    {
+      "group": "F x 2014",
+      "sd_ratio": 2.4626424700865623,
+      "variance_ratio": 6.064607935474045,
+      "log_odds_quadratic": 103.01170614289325,
+      "log_odds_linear": -2.7189927751802925,
+      "log_odds_constant": -2.818086340702315,
+      "n_real_crossovers": 2,
+      "left_crossover_y": -0.15272756799542914,
+      "right_crossover_y": 0.17912255626412768,
+      "upper_component_dominates_both_extreme_tails": true
+    },
+    {
+      "group": "M x 2013",
+      "sd_ratio": 2.3903476385886813,
+      "variance_ratio": 5.713761833306485,
+      "log_odds_quadratic": 141.8827148634918,
+      "log_odds_linear": 0.601631361439166,
+      "log_odds_constant": -2.4948697886104454,
+      "n_real_crossovers": 2,
+      "left_crossover_y": -0.13474190510477344,
+      "right_crossover_y": 0.13050156221298423,
+      "upper_component_dominates_both_extreme_tails": true
+    },
+    {
+      "group": "M x 2014",
+      "sd_ratio": 2.116897671720941,
+      "variance_ratio": 4.481255752537541,
+      "log_odds_quadratic": 72.08748520936223,
+      "log_odds_linear": -2.969529400486419,
+      "log_odds_constant": -2.2831076689736385,
+      "n_real_crossovers": 2,
+      "left_crossover_y": -0.15855565995785148,
+      "right_crossover_y": 0.19974907087879112,
+      "upper_component_dominates_both_extreme_tails": true
+    }
+  ],
+  "score_gain_partition": [
+    {
+      "group": "F x 2013",
+      "region": "left",
+      "n_test": 66,
+      "gain_total_nats": 19.992242024029295,
+      "percent_of_total_gain": 8.163310191152279,
+      "training_q05": -0.06282128573248986,
+      "training_q95": 0.15128656832495765
+    },
+    {
+      "group": "F x 2013",
+      "region": "central",
+      "n_test": 1159,
+      "gain_total_nats": -0.43140304542794006,
+      "percent_of_total_gain": -0.176152173078098,
+      "training_q05": -0.06282128573248986,
+      "training_q95": 0.15128656832495765
+    },
+    {
+      "group": "F x 2013",
+      "region": "right",
+      "n_test": 66,
+      "gain_total_nats": 7.841975568746001,
+      "percent_of_total_gain": 3.202066031522029,
+      "training_q05": -0.06282128573248986,
+      "training_q95": 0.15128656832495765
+    },
+    {
+      "group": "F x 2014",
+      "region": "left",
+      "n_test": 135,
+      "gain_total_nats": -2.2740752544123017,
+      "percent_of_total_gain": -0.9285592720155413,
+      "training_q05": -0.06329301249324848,
+      "training_q95": 0.22454402687383215
+    },
+    {
+      "group": "F x 2014",
+      "region": "central",
+      "n_test": 2554,
+      "gain_total_nats": 42.941585430563684,
+      "percent_of_total_gain": 17.53407554531529,
+      "training_q05": -0.06329301249324848,
+      "training_q95": 0.22454402687383215
+    },
+    {
+      "group": "F x 2014",
+      "region": "right",
+      "n_test": 148,
+      "gain_total_nats": 66.4855755279003,
+      "percent_of_total_gain": 27.14764935414418,
+      "training_q05": -0.06329301249324848,
+      "training_q95": 0.22454402687383215
+    },
+    {
+      "group": "M x 2013",
+      "region": "left",
+      "n_test": 89,
+      "gain_total_nats": 6.436867222880034,
+      "percent_of_total_gain": 2.6283267147563443,
+      "training_q05": -0.052400862314655655,
+      "training_q95": 0.25457190617584213
+    },
+    {
+      "group": "M x 2013",
+      "region": "central",
+      "n_test": 1721,
+      "gain_total_nats": -24.18018620745204,
+      "percent_of_total_gain": -9.873347884344508,
+      "training_q05": -0.052400862314655655,
+      "training_q95": 0.25457190617584213
+    },
+    {
+      "group": "M x 2013",
+      "region": "right",
+      "n_test": 111,
+      "gain_total_nats": 55.34511654393492,
+      "percent_of_total_gain": 22.5987337173381,
+      "training_q05": -0.052400862314655655,
+      "training_q95": 0.25457190617584213
+    },
+    {
+      "group": "M x 2014",
+      "region": "left",
+      "n_test": 166,
+      "gain_total_nats": 52.763479401932244,
+      "percent_of_total_gain": 21.544589576534015,
+      "training_q05": -0.042405510796989905,
+      "training_q95": 0.330983978281706
+    },
+    {
+      "group": "M x 2014",
+      "region": "central",
+      "n_test": 3130,
+      "gain_total_nats": -46.364347548467066,
+      "percent_of_total_gain": -18.931671114906106,
+      "training_q05": -0.042405510796989905,
+      "training_q95": 0.330983978281706
+    },
+    {
+      "group": "M x 2014",
+      "region": "right",
+      "n_test": 194,
+      "gain_total_nats": 66.34678854812115,
+      "percent_of_total_gain": 27.090979313582018,
+      "training_q05": -0.042405510796989905,
+      "training_q95": 0.330983978281706
+    },
+    {
+      "group": "all",
+      "region": "left",
+      "n_test": 456,
+      "gain_total_nats": 76.91851339442927,
+      "percent_of_total_gain": 31.407667210427093,
+      "training_q05": null,
+      "training_q95": null
+    },
+    {
+      "group": "all",
+      "region": "central",
+      "n_test": 8564,
+      "gain_total_nats": -28.034351370783362,
+      "percent_of_total_gain": -11.44709562701342,
+      "training_q05": null,
+      "training_q95": null
+    },
+    {
+      "group": "all",
+      "region": "right",
+      "n_test": 519,
+      "gain_total_nats": 196.01945618870235,
+      "percent_of_total_gain": 80.03942841658632,
+      "training_q05": null,
+      "training_q95": null
+    }
+  ],
+  "year_composition_definition": "Training counts and raw log-ratio summaries in fixed baseline-pace intervals [5,5.5), [5.5,6), [6,6.5); these cannot identify the causal effect of race interruption.",
+  "training_year_composition": [
+    {
+      "baseline_pace_lower": 5.0,
+      "baseline_pace_upper": 5.5,
+      "year": 2013,
+      "n_train": 3546,
+      "share_of_bin": 0.4148824148824149,
+      "raw_ratio_q25": 0.04741416747554234,
+      "raw_ratio_median": 0.08657730709613372
+    },
+    {
+      "baseline_pace_lower": 5.0,
+      "baseline_pace_upper": 5.5,
+      "year": 2014,
+      "n_train": 5001,
+      "share_of_bin": 0.5851175851175852,
+      "raw_ratio_q25": 0.07300824697415556,
+      "raw_ratio_median": 0.12479284115381095
+    },
+    {
+      "baseline_pace_lower": 5.5,
+      "baseline_pace_upper": 6.0,
+      "year": 2013,
+      "n_train": 896,
+      "share_of_bin": 0.20076181940398835,
+      "raw_ratio_q25": 0.04349524595380283,
+      "raw_ratio_median": 0.0866840177906214
+    },
+    {
+      "baseline_pace_lower": 5.5,
+      "baseline_pace_upper": 6.0,
+      "year": 2014,
+      "n_train": 3567,
+      "share_of_bin": 0.7992381805960117,
+      "raw_ratio_q25": 0.09034888527508503,
+      "raw_ratio_median": 0.15788488168414042
+    },
+    {
+      "baseline_pace_lower": 6.0,
+      "baseline_pace_upper": 6.5,
+      "year": 2013,
+      "n_train": 44,
+      "share_of_bin": 0.018843683083511777,
+      "raw_ratio_q25": 0.026876270037014465,
+      "raw_ratio_median": 0.10327275353044728
+    },
+    {
+      "baseline_pace_lower": 6.0,
+      "baseline_pace_upper": 6.5,
+      "year": 2014,
+      "n_train": 2291,
+      "share_of_bin": 0.9811563169164882,
+      "raw_ratio_q25": 0.11338924240652927,
+      "raw_ratio_median": 0.1742648386755016
+    }
+  ]
+}
