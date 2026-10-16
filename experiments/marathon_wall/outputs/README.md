@@ -2,7 +2,7 @@
 
 These committed tables came from the pre-audit hierarchical Bayesian analysis at commit `2149a2094257a3b117bb42273ae444b90ded2eb3`. They are retained to preserve the original work, not relabeled as new results. Sampler draws were not committed, and these historical numerical outputs were not independently regenerated during the audit.
 
-Use `../audit_outputs/` and `../audited_analysis.py` for the revised Q3.
+Use [the Homework 1 code and reproduction instructions](../../../homeworks/hw1/README.md) for the submitted Q3.
 
 Known limitations of these historical outputs:
 

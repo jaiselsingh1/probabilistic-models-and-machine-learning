@@ -29,8 +29,8 @@
     "matplotlib": "3.10.9"
   },
   "inputs_sha256": {
-    "data/boston/results_2013.csv": "28c2b1e580895cadab4f9b92893e9e4211b178ccbe374ae987581353c9963408",
-    "data/boston/results_2014.csv": "4ff8d8f25344f358abe70faba8e901aba703e964aff2da676b0ba0092f247437"
+    "results_2013.csv": "28c2b1e580895cadab4f9b92893e9e4211b178ccbe374ae987581353c9963408",
+    "results_2014.csv": "4ff8d8f25344f358abe70faba8e901aba703e964aff2da676b0ba0092f247437"
   },
   "fits": {
     "q25": {

@@ -2,7 +2,7 @@
 
 Run from the repository root with::
 
-    python -m experiments.marathon_wall.audited_analysis --data-dir data/boston
+    python -m homeworks.hw1.audited_analysis
 
 The estimand is predictive density for eligible finisher records from these
 sex/year strata, conditional on a fitted training set. No mixture component is
@@ -312,9 +312,9 @@ def make_macros(frame, train, comparisons, fits, output):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-dir", type=Path, default=Path("data/boston"))
-    parser.add_argument("--out-dir", type=Path, default=Path("experiments/marathon_wall/audit_outputs"))
-    parser.add_argument("--fig-dir", type=Path, default=Path("homeworks/figures"))
+    parser.add_argument("--data-dir", type=Path, default=Path(__file__).resolve().parent / "data" / "boston")
+    parser.add_argument("--out-dir", type=Path, default=Path(__file__).resolve().parent / "results")
+    parser.add_argument("--fig-dir", type=Path, default=Path(__file__).resolve().parents[1] / "figures")
     args = parser.parse_args(argv)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     args.fig_dir.mkdir(parents=True, exist_ok=True)
@@ -364,7 +364,7 @@ def main(argv=None):
                                 "One split does not quantify training-set or model-selection uncertainty"],
                 "versions": {"python": platform.python_version(), "numpy": np.__version__, "pandas": pd.__version__,
                              "scipy": scipy.__version__, "matplotlib": matplotlib.__version__},
-                "inputs_sha256": {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path, _ in sources.values()},
+                "inputs_sha256": {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path, _ in sources.values()},
                 "fits": fitted_variants}
     (args.out_dir / "results.json").write_text(json.dumps(metadata, indent=2) + "\n")
     make_macros(frame, train, comparisons, fitted_variants, args.fig_dir / "audit_numbers.tex")

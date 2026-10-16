@@ -1,6 +1,6 @@
 """Archived Bayesian density models for the deceleration metric.
 
-The current submission uses :mod:`.audited_analysis`.  This module preserves
+The current submission uses :mod:`homeworks.hw1.audited_analysis`.  This module preserves
 the exploratory fits; their component labels are statistical, not diagnosed
 physiological states.
 

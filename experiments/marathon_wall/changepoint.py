@@ -1,6 +1,6 @@
 """Archived exploratory hierarchical change-point model over segment paces.
 
-The current submission uses :mod:`.audited_analysis`.  This extension asks when
+The current submission uses :mod:`homeworks.hw1.audited_analysis`.  This extension asks when
 pacing changes appear, which a scalar late/baseline ratio cannot identify.
 Neither a fitted change-point nor a mixture component identifies glycogen
 depletion: its timing depends on intensity, initial stores, fueling, and other
@@ -49,7 +49,7 @@ import pandas as pd
 import pymc as pm
 import pytensor.tensor as pt
 
-from .data import CHECKPOINT_KM
+from homeworks.hw1.data import CHECKPOINT_KM
 from .models import GroupIndex
 
 __all__ = ["SegmentPanel", "build_changepoint_model", "summarise_changepoints"]

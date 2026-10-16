@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independent numerical checks for Homework 1, Questions 1 and 2.
 
-Run with ``python -m experiments.marathon_wall.check_derivations``.
+Run with ``python -m homeworks.hw1.check_derivations``.
 Uses only the standard library. Integrates the *prior times likelihood*, then
 compares its evidence and posterior moments with the derived expressions.
 These finite numerical examples complement, rather than replace, the proofs.

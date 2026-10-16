@@ -1,6 +1,6 @@
 """Archived exploratory checks for the Bayesian pacing models.
 
-The current submission uses :mod:`.audited_analysis`.  These routines preserve
+The current submission uses :mod:`homeworks.hw1.audited_analysis`.  These routines preserve
 the original simulations and descriptive comparisons.  Predictive superiority
 over a skew-normal does not establish a distinct physiological state; one
 simulated null dataset does not calibrate a test across all unimodal densities.
@@ -24,9 +24,9 @@ import arviz as az
 import numpy as np
 import pandas as pd
 
-from .data import CHECKPOINT_KM
+from homeworks.hw1.data import CHECKPOINT_KM
 from .diagnostics import compare_models, posterior_responsibility
-from .metric import MetricWindows, raw_log_ratio
+from homeworks.hw1.metric import MetricWindows, raw_log_ratio
 from .models import GroupIndex, build_model, sample_model
 
 __all__ = [

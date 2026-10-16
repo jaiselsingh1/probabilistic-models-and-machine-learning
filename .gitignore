@@ -223,8 +223,8 @@ experiments/marathon_wall/outputs/*.nc
 experiments/marathon_wall/outputs/metric*.csv
 
 # Regenerable audited pointwise records and local LaTeX build products
-experiments/marathon_wall/audit_outputs/cohort.csv
-experiments/marathon_wall/audit_outputs/heldout_scores.csv
+homeworks/hw1/results/cohort.csv
+homeworks/hw1/results/heldout_scores.csv
 homeworks/*.aux
 homeworks/*.out
 homeworks/*.fls

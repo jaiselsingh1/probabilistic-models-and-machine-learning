@@ -4,7 +4,7 @@
 
 Q1 and Q2 are mathematically correct. Q3 now makes a narrower, defensible claim: a two-Gaussian mixture improves predictive density relative to the fitted Gaussian and skew-normal, but its fitted densities are unimodal and its components do not identify physiological wall states. The final homework is four pages, respecting the assignment's 1/1/2-page limits.
 
-The starting branch was `hw1-q3-marathon-wall`, commit `2149a2094257a3b117bb42273ae444b90ded2eb3`. Revised work is on `codex/hw1-verified-analysis`. Historical experiments remain available and are explicitly distinguished from the submitted analysis.
+The starting branch was `hw1-q3-marathon-wall`, commit `2149a2094257a3b117bb42273ae444b90ded2eb3`. Revised work was reviewed on `codex/hw1-verified-analysis` and is now merged into `main`. The submitted code and reproduction instructions are in [hw1/](hw1/README.md). Historical experiments remain available and are explicitly distinguished from the submitted analysis.
 
 ## The deeper task requested
 
@@ -59,7 +59,7 @@ The primary per-record gain is 0.0257 nats, with conditional SE 0.0050. The 2014
 
 The paired-score SE is `sqrt(sum_g n_g * sample_variance(d_g))`, respecting the fixed group counts. It treats records as independent, conditions on the fitted training data, and excludes training-set uncertainty, possible repeat-runner dependence, and variation across races. No Bayesian posterior interval or population prevalence is reported.
 
-Independent recomputation from saved data, without importing the fit functions, checks all 38,156 specification×heldout rows and all 48 comparison rows. Maximum log-density discrepancy is 3.6e-14. A separate normal-mixture derivative calculation finds one stationary maximum in all 16 fits, agreeing with the plotted/grid-based assessment. See `audit_outputs/verification.json` and `scripts/verify_hw1_results.py`.
+Independent recomputation from saved data, without importing the fit functions, checks all 38,156 specification×heldout rows and all 48 comparison rows. Maximum log-density discrepancy is 3.6e-14. A separate normal-mixture derivative calculation finds one stationary maximum in all 16 fits, agreeing with the plotted/grid-based assessment. See [the verification results](hw1/results/verification.json) and [the independent verifier](hw1/verify_results.py).
 
 Eleven regression tests cover mixed-format and missing clocks, observed-endpoint selection, isolated versus consecutive imputation, nonmonotone timing, the first segment's quality filter, density normalization/modes, recovery on separated synthetic components, invariance of training fits to altered held-out values, fixed-stratum SE, valid LaTeX macro names, and full exclusion counts. Strict LaTeX compilation completes with no overfull boxes, unresolved references, or warnings. All four rendered pages were visually inspected.
 
@@ -78,4 +78,4 @@ Eleven regression tests cover mixed-format and missing clocks, observed-endpoint
 - [Rapoport (2010)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1000960): depletion depends on runner characteristics, intensity, stores, and fueling, rather than a universal 90–120-minute switch.
 - [Harvard account of BAA's interrupted-race estimation project](https://news.harvard.edu/gazette/story/newsplus/researchers-help-boston-marathon-organizers-plan-for-2014-race/): 2013's interrupted outcomes.
 
-The assignment PDF supplies the requirements; its submission instructions were treated as assignment context, not authorization to submit through Gradescope. Nothing was submitted or merged to main.
+The assignment PDF supplies the requirements; its submission instructions were treated as assignment context, not authorization to submit through Gradescope. The reviewed work was subsequently merged to `main` at the user's request. No Gradescope submission has been made.

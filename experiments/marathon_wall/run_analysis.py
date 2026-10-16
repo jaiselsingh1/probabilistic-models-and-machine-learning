@@ -39,7 +39,7 @@ import pandas as pd
 
 from . import plots
 from .changepoint import SegmentPanel, build_changepoint_model, summarise_changepoints
-from .data import SCHEMAS, SplitSchema, load_races
+from homeworks.hw1.data import SCHEMAS, SplitSchema, load_races
 from .diagnostics import (
     bayes_decision,
     calibrate_loss_ratio,
@@ -48,7 +48,7 @@ from .diagnostics import (
     loo_table,
     posterior_responsibility,
 )
-from .metric import MetricWindows, build_metric, segment_pace_table
+from homeworks.hw1.metric import MetricWindows, build_metric, segment_pace_table
 from .models import GroupIndex, build_model, sample_model
 from .validation import (
     SMYTH_2021_WALL_RATE,

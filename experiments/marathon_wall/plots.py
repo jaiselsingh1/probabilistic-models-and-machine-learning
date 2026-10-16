@@ -270,6 +270,6 @@ def figure_invariance(invariance: pd.DataFrame, path: Path) -> Figure:
 
 
 def _segment_starts_after(segment: str, km: float) -> bool:
-    from .data import CHECKPOINT_KM
+    from homeworks.hw1.data import CHECKPOINT_KM
 
     return CHECKPOINT_KM[segment.split("->")[0]] >= km
