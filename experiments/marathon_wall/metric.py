@@ -1,36 +1,16 @@
-"""Topographically de-confounded late-race deceleration.
+"""Empirically centered late-to-baseline log pace ratios.
 
-The naive wall statistic, :math:`\\log(\\mathrm{Half}_2 / \\mathrm{Half}_1)`,
-mixes three things that have nothing to do with glycogen: the 140 m drop out of
-Hopkinton that makes the first half cheap, the Newton Hills between 25K and 35K
-that make the second half dear, and the fact that a 5:00/km runner and a
-9:00/km runner do not pay the same relative price for the same hill.
+The default response is log[pace(30K--40K) / pace(10K--25K)] minus
+an estimated conditional quantile given baseline pace. This is descriptive
+centering, not an identified correction for terrain or physiology: baseline
+pace and late pace also reflect fatigue, strategy, weather, and selection.
+The late window includes part of the Newton Hills.
 
-This module replaces it with
-
-.. math::
-
-    y_i = \\log\\!\\frac{p^{\\text{late}}_i}{p^{\\text{base}}_i} - \\hat\\delta_q(a_i),
-
-where :math:`p^{\\text{late}}` is the 30K-40K pace, :math:`p^{\\text{base}}` the
-10K-25K pace, :math:`a_i` is the athlete's baseline pace (an ability proxy that
-is itself measured away from the hills), and :math:`\\hat\\delta_q(\\cdot)` is a
-reference terrain-response curve: the :math:`q`-th conditional quantile of the
-raw ratio at that ability.
-
-Two properties make this adjustment safe for the question being asked.  First,
-within an ability stratum it is a pure *location* shift, so it cannot create
-bimodality.  Second, it removes exactly the ability-driven location differences
-that would manufacture bimodality when strata are pooled.  The adjustment is
-therefore conservative: it can only destroy spurious evidence for a second
-component, never build it.
-
-A grade-adjustment in the physiological sense -- Minetti's energy-cost
-polynomial applied to a measured elevation profile -- is also provided, for use
-when a surveyed course profile is at hand.  It is *not* the default, because it
-corrects for gradient alone, while the empirical reference curve additionally
-absorbs crowding, cornering, aid stations and wind, which are common to all
-athletes on a segment in exactly the same way gradient is.
+For predictive evaluation, fit TerrainReference on training records only and
+pass that frozen reference when transforming validation records. A location
+shift preserves shape at exactly fixed baseline pace, but different shifts
+across observations can alter the pooled shape and number of modes. There is
+no guarantee that this transformation is conservative for mixture detection.
 """
 
 from __future__ import annotations
@@ -128,7 +108,7 @@ class MinettiProfile:
 
 @dataclass
 class TerrainReference:
-    """Reference terrain-and-pacing response :math:`\\hat\\delta_q(a)`.
+    """Empirical baseline-pace reference :math:`\\hat\\delta_q(a)`.
 
     Estimated as the ``quantile``-th conditional quantile of the raw log ratio
     within ability bins, then linearly interpolated between bin centres and held
@@ -195,7 +175,7 @@ def build_metric(
     reference: TerrainReference | None = None,
     minetti: MinettiProfile | None = None,
 ) -> tuple[pd.DataFrame, TerrainReference]:
-    """Attach the de-confounded deceleration metric ``y`` to the tidy frame.
+    """Attach the empirically centered deceleration metric ``y`` to the tidy frame.
 
     ``require_observed`` insists that the four checkpoints bounding the two
     windows came off a real mat rather than the interior-gap interpolation in

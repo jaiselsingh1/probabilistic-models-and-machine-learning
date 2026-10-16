@@ -1,33 +1,24 @@
-"""External validation: is the second component a physiological state or an artefact?
+"""Archived exploratory checks for the Bayesian pacing models.
 
-Three checks, in increasing order of how hard they are to fake.
+The current submission uses :mod:`.audited_analysis`.  These routines preserve
+the original simulations and descriptive comparisons.  Predictive superiority
+over a skew-normal does not establish a distinct physiological state; one
+simulated null dataset does not calibrate a test across all unimodal densities.
+Synthetic year effects check recovery under the chosen generating model, not
+the causal effect of weather or the power of a general test.  Pace-matched
+trajectory differences are associations subject to selection, measurement error,
+and conditioning effects, even when segments do not overlap the metric windows.
 
-(a) *Predictive*.  PSIS-LOO Delta-ELPD against the unimodal skew-normal control,
-    plus LOO-PIT calibration.  This only establishes that two components fit
-    better than one skewed component -- necessary, nowhere near sufficient.
-
-(b) *Exogenous shock*.  The model never sees weather.  If the fitted wall
-    fraction nevertheless tracks a year that was physiologically harder, the
-    component is responding to something real.  :func:`wall_fraction_by_stratum`
-    extracts the fractions; :func:`simulate_year_shock` establishes that the
-    estimator *can* recover such a spike at this sample size and effect size,
-    so a null result would be informative rather than merely underpowered.
-
-(c) *Trajectory invariance*.  A glycogen-depletion wall is a late event.
-    Conditional on ability, athletes the model assigns to the wall component
-    should be indistinguishable from the rest *before* 25K, and separate sharply
-    after.  If instead they are slower or more erratic from the gun, the
-    "component" is just a label for bad pacing or low fitness.
-
-:func:`simulate_skewnormal_null` is the guard that makes (a) meaningful: data
-generated from a genuinely unimodal skewed law must *not* produce a decisive
-Delta-ELPD in favour of the mixture.
+The legacy ``smyth_rule`` name is retained for compatibility, but that rule does
+NOT implement Smyth (2021).  Historical outputs using it are misattributed and
+are excluded from the current submission's evidence.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Mapping, Sequence
+import warnings
 
 import arviz as az
 import numpy as np
@@ -50,11 +41,13 @@ __all__ = [
     "SMYTH_2021_WALL_RATE",
 ]
 
-# Smyth (2021), "How recreational marathon runners hit the wall", PLoS ONE
-# 16(5): e0251513.  Over 4.1M performances he calls a wall when 25K-to-finish
-# pace is >= 20% slower than 5K-20K pace, and reports an incidence of 28% of men
-# and 17% of women.  Both the threshold and the windows are reproduced here so
-# the rule can be run on this field rather than merely cited at it.
+# Smyth (2021), PLoS ONE 16(5): e0251513,
+# https://doi.org/10.1371/journal.pone.0251513, reports 28% of men and 17% of
+# women in the main repeat-runner analysis.  Those are not universal benchmarks
+# or rates for every record in the original 4.1M-record dataset.  His actual
+# rule is >=25% segment slowdown relative to 5K-20K baseline over >=5 km after
+# 20K.  The next two legacy constants preserve a different 20% window-average
+# rule for compatibility with archived outputs; their names are historical.
 SMYTH_2021_WALL_RATE: Mapping[str, float] = {"M": 0.28, "F": 0.17}
 SMYTH_2021_SLOWDOWN: float = 0.20
 SMYTH_2021_WINDOWS: MetricWindows = MetricWindows(baseline=("5k", "20k"), late=("25k", "finish"))
@@ -86,8 +79,8 @@ def segment_is_disjoint(segment: str, windows: MetricWindows = MetricWindows()) 
     Segments *inside* a window are mechanically tied to the metric: conditional
     on the baseline pace, running 10K-20K relatively fast forces Half-25K
     relatively slow, so a large standardised difference there says nothing about
-    physiology.  Only disjoint segments carry evidence, and the tied ones are
-    retained purely as a positive control.
+    physiology.  Disjoint segments avoid this direct window overlap, but they
+    can still share endpoint timing errors and conditioning-induced associations.
     """
     start, end = segment.split("->")
     lo, hi = CHECKPOINT_KM[start], CHECKPOINT_KM[end]
@@ -108,17 +101,16 @@ def trajectory_invariance(
 ) -> pd.DataFrame:
     """Ability-matched standardised pace difference, segment by segment.
 
-    Within each ability decile the segment pace is divided by the athlete's own
-    baseline pace, so the comparison is of *shape*, not speed.  The reported
+    Within each baseline-pace decile the segment pace is divided by the athlete's
+    own baseline pace.  The reported
     statistic is the decile-size-weighted standardised mean difference between
     the putative wall class and the clean class.
 
-    Matching on ability is what makes the early segments interpretable: within a
-    stratum of equal 10K-25K pace, class membership is driven entirely by the
-    30K-40K pace, so a difference over the first 10 km cannot have been induced
-    by the metric.  ``disjoint`` marks the segments for which that argument
-    holds; the rest are a positive control only.  Under a pure late-onset
-    depletion hypothesis the disjoint early segments should show SMD ~ 0.
+    ``disjoint`` marks absence of distance overlap with the metric windows;
+    it does not establish statistical independence.  Baseline pace is measured
+    during the race, may already reflect fatigue, and is matched only in coarse
+    bins.  Differences can describe pacing associations but cannot identify
+    glycogen depletion, fitness, or the causal effect of an aggressive start.
     """
     ability_bin = pd.qcut(frame["ability"], n_ability_bins, labels=False, duplicates="drop")
     is_wall = responsibility >= wall_threshold
@@ -173,12 +165,13 @@ def simulate_year_shock(
     seed: int = 20170417,
     **sampler_kwargs: object,
 ) -> pd.DataFrame:
-    """Can a year-level wall-fraction spike be recovered without weather covariates?
+    """Check recovery of a synthetic year-level component-weight difference.
 
     Generates three synthetic races whose only difference is :math:`\\pi`, fits
     the hierarchical mixture with year as the grouping, and reports recovery.
-    This calibrates check (b): it says what a real spike would have to look like
-    before the estimator could see it.
+    A single simulation checks this chosen parameter setting.  It does not
+    estimate repeated-sampling coverage or show that a real year difference is
+    caused by weather.
     """
     rng = np.random.default_rng(seed)
     years: list[int] = []
@@ -212,11 +205,12 @@ def simulate_skewnormal_null(
     seed: int = 20150420,
     **sampler_kwargs: object,
 ) -> pd.DataFrame:
-    """Does the mixture win even when the truth is unimodal-but-skewed?
+    """Compare the models on one synthetic skew-normal dataset.
 
     Draws from a single skew-normal -- no latent regime anywhere -- and runs the
-    same LOO comparison.  If the mixture still wins decisively here, a decisive
-    Delta-ELPD on the real data would be worthless.
+    same LOO comparison.  This is a diagnostic for the selected generating
+    distribution and seed, not evidence that model selection distinguishes
+    physiological regimes or is calibrated for every unimodal alternative.
     """
     from scipy import stats
 
@@ -242,12 +236,11 @@ def early_shape_test(
 ) -> pd.DataFrame:
     """Did the two classes already differ over the Hopkinton descent?
 
-    Uses only the first 10 km -- the one statistic that is disjoint from both
-    windows of ``y`` under any conditioning: ``e_i = log(p_{5-10K} / p_{0-5K})``,
-    the degree to which an athlete eased off after the 140 m drop out of
-    Hopkinton.  A positive SMD means the wall class attacked the descent harder
-    and then eased more, which would implicate eccentric muscle damage rather
-    than (or as well as) glycogen depletion.
+    Uses ``e_i = log(p_{5-10K} / p_{0-5K})``.  Its distance window does not
+    overlap either metric window, although the 10K endpoint and conditioning on
+    baseline pace can still induce dependence.  A positive SMD means the
+    higher-responsibility group has a larger early pace ratio; this observation
+    does not identify muscle damage or glycogen depletion.
     """
     if "start->5k" not in segment_paces.columns or "5k->10k" not in segment_paces.columns:
         return pd.DataFrame(columns=["statistic", "smd", "n_wall", "n_clean"])
@@ -291,15 +284,21 @@ def smyth_rule(
     slowdown: float = SMYTH_2021_SLOWDOWN,
     windows: MetricWindows = SMYTH_2021_WINDOWS,
 ) -> pd.Series:
-    """Smyth's (2021) rule applied verbatim to this field.
+    """Archived 20% window-average slowdown rule, NOT Smyth's published rule.
 
-    Deliberately uses his windows and his *unadjusted* ratio rather than the
-    de-confounded metric: the point of the comparison is to see what a fixed
-    threshold does on a course whose topography it never accounted for.
+    The default compares 25K-finish average pace with 5K-20K average pace.
+    Smyth instead uses >=25% slowdown over >=5 km of segments after 20K.
+    The function name, defaults, and return type are retained so archived
+    outputs remain reproducible; do not report them as a replication of Smyth.
 
-    Returns a nullable boolean: an athlete missing one of *his* four mats is
-    undecidable by his rule, and must not be silently counted as a non-wall.
+    Returns nullable booleans; missing endpoints produce undecidable calls.
     """
+    warnings.warn(
+        "smyth_rule is an archived 20% window-average rule, not Smyth (2021)'s "
+        "published 25% segment/distance rule; do not use it as that benchmark.",
+        UserWarning,
+        stacklevel=2,
+    )
     ratio = raw_log_ratio(frame, windows)
     called = ratio >= np.log1p(slowdown)
     return called.where(ratio.notna()).astype("boolean")
@@ -311,12 +310,14 @@ def compare_to_smyth_rule(
     *,
     loss_ratio: float = 1.0,
 ) -> pd.DataFrame:
-    """Rule-based versus model-based wall calls, by sex.
+    """Compare the archived window-average rule and mixture calls by sex.
 
     Reports each rule's incidence, how often they agree, and Cohen's kappa -- a
     high incidence match with a low kappa would mean the two rules select
     equally many athletes but not the same ones, which is the failure mode worth
-    knowing about.
+    knowing about.  Legacy output column names are retained for compatibility;
+    ``smyth_rule_rate_here`` is NOT an implementation of the published rule and
+    cannot validate agreement with Smyth's reported prevalence.
     """
     from .diagnostics import bayes_decision
 

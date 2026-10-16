@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -23,7 +24,20 @@ def _fmt(value: float, places: int = 2) -> str:
 
 
 def _macro(name: str, body: str) -> str:
+    # TeX control words end at the first nonletter: ``\\wallPiFx2013``
+    # defines \\wallPiFx and prints the year as document text.
+    if re.fullmatch(r"[A-Za-z]+", name) is None:
+        raise ValueError(f"LaTeX macro names must contain ASCII letters only: {name!r}")
     return f"\\newcommand{{\\{name}}}{{{body}}}"
+
+
+def _group_tag(group: str) -> str:
+    """Turn labels such as ``F x 2013`` into letter-only TeX suffixes."""
+    digit_names = ("Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine")
+    return "".join(
+        digit_names[int(ch)] if ch in "0123456789" else ch
+        for ch in group if ch.isascii() and ch.isalnum()
+    )
 
 
 def _read_csv(path: Path) -> pd.DataFrame | None:
@@ -36,8 +50,16 @@ def build(out_dir: Path) -> list[str]:
     hygiene = _read_csv(out_dir / "hygiene.csv")
     metric = _read_csv(out_dir / "metric.csv")
     if hygiene is not None:
-        lines.append(_macro("wallRawRows", f"{int(hygiene.groupby('race')['n_before'].max().sum()):,}"))
-        lines.append(_macro("wallDropped", f"{int(hygiene['dropped'].sum()):,}"))
+        raw_rows = int(hygiene.groupby("race")["n_before"].max().sum())
+        # build_metric can exclude additional athletes with missing defining
+        # mats.  The write-up needs all exclusions, not hygiene alone.
+        dropped = raw_rows - len(metric) if metric is not None else int(hygiene["dropped"].sum())
+        if dropped < 0:
+            raise ValueError("metric.csv contains more rows than the recorded raw data")
+        lines.append(_macro("wallRawRows", f"{raw_rows:,}"))
+        lines.append(_macro("wallDropped", f"{dropped:,}"))
+        if metric is None:
+            lines.append("% wallDropped counts hygiene exclusions only; metric.csv is unavailable.")
     if metric is not None:
         lines.append(_macro("wallN", f"{len(metric):,}"))
         lines.append(_macro("wallYMean", _fmt(float(metric['y'].mean()), 3)))
@@ -67,7 +89,7 @@ def build(out_dir: Path) -> list[str]:
     pi = _read_csv(out_dir / "pi_by_group.csv")
     if pi is not None:
         for _, row in pi.iterrows():
-            tag = "".join(ch for ch in str(row["group"]) if ch.isalnum())
+            tag = _group_tag(str(row["group"]))
             lines.append(_macro(f"wallPi{tag}", f"{100 * float(row['pi_mean']):.0f}"))
             lines.append(_macro(f"wallPiLo{tag}", f"{100 * float(row['pi_lo']):.0f}"))
             lines.append(_macro(f"wallPiHi{tag}", f"{100 * float(row['pi_hi']):.0f}"))

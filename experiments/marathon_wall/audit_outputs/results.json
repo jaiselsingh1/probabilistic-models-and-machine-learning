@@ -1,0 +1,637 @@
+{
+  "seed": 20261016,
+  "train_fraction": 0.8,
+  "n_raw": 48148,
+  "n_excluded": 457,
+  "n": 47691,
+  "n_train": 38152,
+  "n_test": 9539,
+  "method": "maximum likelihood, per sex/year group",
+  "primary_variant": "q25",
+  "metric": "log(pace 30-40km / pace 10-25km)",
+  "reference": "40-bin conditional quantile, fit only on training records",
+  "uncertainty": "paired held-out log-score SE, conditional on the trained fits and treating records as independent",
+  "limitations": [
+    "Finisher-only selection; 2013 race interruption",
+    "No inference about biological states or wall prevalence",
+    "Random holdout measures within-year prediction, not a future race",
+    "Repeat runners across years are not identified",
+    "2014-only score rows retain the training reference estimated using both years",
+    "The existing all-data draft informed this audit; the holdout is an internal refitting diagnostic, not pristine confirmation",
+    "Sensitivity variants share the same heldout set and are not independent confirmations",
+    "One split does not quantify training-set or model-selection uncertainty"
+  ],
+  "versions": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "pandas": "3.0.6",
+    "scipy": "1.17.1",
+    "matplotlib": "3.10.9"
+  },
+  "inputs_sha256": {
+    "data/boston/results_2013.csv": "28c2b1e580895cadab4f9b92893e9e4211b178ccbe374ae987581353c9963408",
+    "data/boston/results_2014.csv": "4ff8d8f25344f358abe70faba8e901aba703e964aff2da676b0ba0092f247437"
+  },
+  "fits": {
+    "q25": {
+      "F x 2013": {
+        "n_train": 5164,
+        "n_test": 1291,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.027090219512972212,
+            "sigma": 0.07182153133545785,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 3.0756636278453087,
+            "loc": -0.05092520804562247,
+            "scale": 0.10604121432827265,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.012087726061123084,
+            "mu_upper": 0.10891858530016157,
+            "sigma_lower": 0.04895604327771261,
+            "sigma_upper": 0.11089487586437455,
+            "weight_upper": 0.1549350441558479,
+            "iterations": 151,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.3245272749779555,
+            "converged_start_objective_range": 5.348587128750637e-10,
+            "scale_floor": 0.001436430626709157,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "F x 2014": {
+        "n_train": 11348,
+        "n_test": 2837,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.05594274908213905,
+            "sigma": 0.09701041625100926,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 2.5339877964172706,
+            "loc": -0.044236827580348755,
+            "scale": 0.13945238925472006,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.036304431059421424,
+            "mu_upper": 0.15333200717464,
+            "sigma_lower": 0.06366683527410637,
+            "sigma_upper": 0.1567886524820196,
+            "weight_upper": 0.16780932045779426,
+            "iterations": 125,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.0337382529319121,
+            "converged_start_objective_range": 6.389851980870276e-10,
+            "scale_floor": 0.0019402083250201852,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2013": {
+        "n_train": 7682,
+        "n_test": 1921,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.06247502922722145,
+            "sigma": 0.10084176248339947,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 4.153063729061599,
+            "loc": -0.04936544658268735,
+            "scale": 0.15059001197278218,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.026109544775075585,
+            "mu_upper": 0.1591777036625579,
+            "sigma_lower": 0.053919146394651625,
+            "sigma_upper": 0.12888550425917292,
+            "weight_upper": 0.27328464417167764,
+            "iterations": 111,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.02558476167518,
+            "converged_start_objective_range": 5.266272973258879e-10,
+            "scale_floor": 0.0020168352496679896,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2014": {
+        "n_train": 13958,
+        "n_test": 3490,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.10414610887337901,
+            "sigma": 0.12222333862934327,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 3.597243530750509,
+            "loc": -0.033696745483089444,
+            "scale": 0.18422594130959838,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.06334316367689322,
+            "mu_upper": 0.2121545172434227,
+            "sigma_lower": 0.07340458105417329,
+            "sigma_upper": 0.15538998672723053,
+            "weight_upper": 0.274192420259412,
+            "iterations": 94,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 0.7863515785439325,
+            "converged_start_objective_range": 7.232207055452022e-10,
+            "scale_floor": 0.0024444667725868653,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      }
+    },
+    "raw": {
+      "F x 2013": {
+        "n_train": 5164,
+        "n_test": 1291,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.08502312405226686,
+            "sigma": 0.07163448530212735,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 3.4509562108022562,
+            "loc": 0.005350897388684314,
+            "scale": 0.10714085579561673,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.0686791078124296,
+            "mu_upper": 0.16800326562767137,
+            "sigma_lower": 0.04817475677719855,
+            "sigma_upper": 0.1056395843005496,
+            "weight_upper": 0.16455227609621073,
+            "iterations": 128,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.327771413340086,
+            "converged_start_objective_range": 5.36800714989738e-10,
+            "scale_floor": 0.001432689706042547,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "F x 2014": {
+        "n_train": 11348,
+        "n_test": 2837,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.13056331903662996,
+            "sigma": 0.09990120861034274,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 2.8701735086227447,
+            "loc": 0.02395731147681579,
+            "scale": 0.146099595892773,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.10785197811911135,
+            "mu_upper": 0.24047506621970346,
+            "sigma_lower": 0.06596495100559789,
+            "sigma_upper": 0.15048062262565223,
+            "weight_upper": 0.17124726352543154,
+            "iterations": 122,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 0.9997829925023125,
+            "converged_start_objective_range": 7.541884894379791e-10,
+            "scale_floor": 0.001998024172206855,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2013": {
+        "n_train": 7682,
+        "n_test": 1921,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.1120334581743268,
+            "sigma": 0.1015885162650777,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 4.856309823820822,
+            "loc": -0.0028677221695177085,
+            "scale": 0.1533704818266647,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.0727241811627089,
+            "mu_upper": 0.20838615296693389,
+            "sigma_lower": 0.05328078575673069,
+            "sigma_upper": 0.12484702684708404,
+            "weight_upper": 0.28975899796256455,
+            "iterations": 117,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.0161317359818767,
+            "converged_start_objective_range": 4.413112653089968e-10,
+            "scale_floor": 0.002031770325301554,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2014": {
+        "n_train": 13958,
+        "n_test": 3490,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.1679188642657002,
+            "sigma": 0.12672072360052158,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 4.321720574701534,
+            "loc": 0.018548196899389413,
+            "scale": 0.19588195481773793,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.12034138198768182,
+            "mu_upper": 0.27793404432735896,
+            "sigma_lower": 0.07659863690316322,
+            "sigma_upper": 0.14928194952219745,
+            "weight_upper": 0.3019016340714474,
+            "iterations": 155,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 0.7360592504009018,
+            "converged_start_objective_range": 8.958362385236285e-10,
+            "scale_floor": 0.0025344144720104316,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      }
+    },
+    "q10": {
+      "F x 2013": {
+        "n_train": 5164,
+        "n_test": 1291,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.06047999831693641,
+            "sigma": 0.0716012346964725,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 3.245065321254367,
+            "loc": -0.018104996617851192,
+            "scale": 0.10631245862739123,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.04469733612336452,
+            "mu_upper": 0.14206414829541633,
+            "sigma_lower": 0.04825564262112865,
+            "sigma_upper": 0.10792272110279044,
+            "weight_upper": 0.1620948847096192,
+            "iterations": 122,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.3289020294323661,
+            "converged_start_objective_range": 7.610556629344956e-10,
+            "scale_floor": 0.0014320246939294502,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "F x 2014": {
+        "n_train": 11348,
+        "n_test": 2837,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.09599280806471856,
+            "sigma": 0.09737605777565976,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 2.707297907088987,
+            "loc": -0.006140222133989501,
+            "scale": 0.14111432419295727,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.07507897789898582,
+            "mu_upper": 0.1994067526168163,
+            "sigma_lower": 0.0637934055590608,
+            "sigma_upper": 0.1529326449292688,
+            "weight_upper": 0.16821526978342502,
+            "iterations": 126,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.03119285997748,
+            "converged_start_objective_range": 6.953737585746467e-10,
+            "scale_floor": 0.0019475211555131952,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2013": {
+        "n_train": 7682,
+        "n_test": 1921,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.09246399051670878,
+            "sigma": 0.10104761150647305,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 4.433046020563999,
+            "loc": -0.020409497674781715,
+            "scale": 0.15149601274846597,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+          },
+          "mixture": {
+            "mu_lower": 0.054673627804002214,
+            "mu_upper": 0.18872400245520832,
+            "sigma_lower": 0.05331593446349315,
+            "sigma_upper": 0.12678665344073994,
+            "weight_upper": 0.2819116530709864,
+            "iterations": 72,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.0239408880036438,
+            "converged_start_objective_range": 8.023914865873394e-10,
+            "scale_floor": 0.002020952230129461,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2014": {
+        "n_train": 13958,
+        "n_test": 3490,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.13973997204122382,
+            "sigma": 0.12332898594472644,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 3.914921529905785,
+            "loc": -0.001946783654468709,
+            "scale": 0.18784348270838622,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.09695688581470983,
+            "mu_upper": 0.2507061590656293,
+            "sigma_lower": 0.07457653305982745,
+            "sigma_upper": 0.152230094116002,
+            "weight_upper": 0.278265290767858,
+            "iterations": 168,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 0.7729287551592698,
+            "converged_start_objective_range": 4.772396922092526e-10,
+            "scale_floor": 0.002466579718894529,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      }
+    },
+    "q50": {
+      "F x 2013": {
+        "n_train": 5164,
+        "n_test": 1291,
+        "parameters": {
+          "gaussian": {
+            "mu": -0.021120731442706327,
+            "sigma": 0.07255219244666412,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 2.81740357803976,
+            "loc": -0.0986849455880637,
+            "scale": 0.10620747455588267,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": -0.03452507912298388,
+            "mu_upper": 0.06294092940108004,
+            "sigma_lower": 0.0509961313442803,
+            "sigma_upper": 0.1173553750884263,
+            "weight_upper": 0.13752843563885228,
+            "iterations": 92,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.3092692366416496,
+            "converged_start_objective_range": 8.683217478377969e-10,
+            "scale_floor": 0.0014510438489332826,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "F x 2014": {
+        "n_train": 11348,
+        "n_test": 2837,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.001973584791326537,
+            "sigma": 0.09706156171584807,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 2.379674524076487,
+            "loc": -0.09688871041994311,
+            "scale": 0.13854493912604995,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": -0.016219818221354636,
+            "mu_upper": 0.09488985214065478,
+            "sigma_lower": 0.06466177510597444,
+            "sigma_upper": 0.16080253255927315,
+            "weight_upper": 0.1637427503241145,
+            "iterations": 110,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.0275054359463334,
+            "converged_start_objective_range": 3.733767739433347e-10,
+            "scale_floor": 0.0019412312343169613,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2013": {
+        "n_train": 7682,
+        "n_test": 1921,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.018167760976098138,
+            "sigma": 0.1008538864471003,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 3.8305715659286856,
+            "loc": -0.09277760193627446,
+            "scale": 0.1499345835060251,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": -0.016376738850321607,
+            "mu_upper": 0.11559033241649844,
+            "sigma_lower": 0.05509006007082995,
+            "sigma_upper": 0.1320665991912235,
+            "weight_upper": 0.2617660564473339,
+            "iterations": 70,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 1.0231077655748395,
+            "converged_start_objective_range": 5.373879119474623e-10,
+            "scale_floor": 0.002017077728942006,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      },
+      "M x 2014": {
+        "n_train": 13958,
+        "n_test": 3490,
+        "parameters": {
+          "gaussian": {
+            "mu": 0.054384467509865315,
+            "sigma": 0.12158506469463302,
+            "converged": true
+          },
+          "skewnormal": {
+            "shape": 3.3067008756928002,
+            "loc": -0.08053673043820375,
+            "scale": 0.1816222935103349,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "optimizer_message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL"
+          },
+          "mixture": {
+            "mu_lower": 0.015566402334453756,
+            "mu_upper": 0.15833989209303365,
+            "sigma_lower": 0.07305796081052884,
+            "sigma_upper": 0.15885828432750035,
+            "weight_upper": 0.27188566477607456,
+            "iterations": 162,
+            "converged": true,
+            "successful_starts": 6,
+            "attempted_starts": 6,
+            "mean_log_likelihood": 0.7922349571997592,
+            "converged_start_objective_range": 4.4295961343365775e-10,
+            "scale_floor": 0.0024317012938926607,
+            "floor_active": false,
+            "density_modes": 1,
+            "upper_component_dominates_both_extreme_tails": true
+          }
+        }
+      }
+    }
+  }
+}

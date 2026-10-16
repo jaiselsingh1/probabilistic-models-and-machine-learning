@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "pointwise_rows_checked": 38156,
+  "maximum_log_density_error": 3.552713678800501e-14,
+  "comparison_rows_checked": 48,
+  "all_sixteen_mixtures_have_one_derivative_root": true,
+  "derivative_roots": {
+    "q25:F x 2013": 0.013128463939495284,
+    "q25:F x 2014": 0.03749508240580913,
+    "q25:M x 2013": 0.02826313891339218,
+    "q25:M x 2014": 0.06708439068120045,
+    "raw:F x 2013": 0.06987015134986438,
+    "raw:F x 2014": 0.10941359526766471,
+    "raw:M x 2013": 0.07511718523838515,
+    "raw:M x 2014": 0.12564185326230068,
+    "q10:F x 2013": 0.045815951777693695,
+    "q10:F x 2014": 0.0763858701958238,
+    "q10:M x 2013": 0.056917118261956556,
+    "q10:M x 2014": 0.10114762748648815,
+    "q50:F x 2013": -0.033624308055368486,
+    "q50:F x 2014": -0.01511132945631857,
+    "q50:M x 2013": -0.014314242642728353,
+    "q50:M x 2014": 0.019015005866738797
+  },
+  "scope": "Independent score/SE/response recomputation; numerical mode cross-check, not proof of global optimization."
+}

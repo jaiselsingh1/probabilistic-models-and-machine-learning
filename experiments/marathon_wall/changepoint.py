@@ -1,11 +1,10 @@
-"""Task 6 extension: a hierarchical piecewise change-point model over all nine splits.
+"""Archived exploratory hierarchical change-point model over segment paces.
 
-The two-component mixture compresses a whole trajectory into one scalar and then
-asks whether that scalar is bimodal.  That is the right first question and the
-wrong last one, because it cannot distinguish *when* deceleration began, and the
-glycogen hypothesis is a claim about *when*: hepatic and muscular glycogen
-should run down after roughly 90-120 minutes of work, i.e. somewhere near 30-35
-km for a recreational field.
+The current submission uses :mod:`.audited_analysis`.  This extension asks when
+pacing changes appear, which a scalar late/baseline ratio cannot identify.
+Neither a fitted change-point nor a mixture component identifies glycogen
+depletion: its timing depends on intensity, initial stores, fueling, and other
+unobserved factors.  There is no universal elapsed-time or distance threshold.
 
 So promote the latent label to a latent *location*.  Write the athlete's log
 pace on segment :math:`s` with midpoint distance :math:`d_s` as
@@ -16,10 +15,10 @@ pace on segment :math:`s` with midpoint distance :math:`d_s` as
     \\qquad \\varepsilon_{is} \\sim \\mathcal{N}(0, \\sigma_\\varepsilon^2),
 
 with :math:`\\alpha_i` the athlete's level, :math:`\\delta_s` a sum-to-zero
-course profile shared by the whole field (this is where the Hopkinton descent
-and the Newton Hills live, so the topographic de-confounding is now *inside* the
-model rather than a pre-processing step), :math:`\\kappa_i` the change-point and
+segment profile shared by the whole field, :math:`\\kappa_i` the change-point and
 :math:`\\beta_i > 0` the post-break fade rate.
+The shared profile can absorb both course effects and common fatigue; it does
+not identify a purely topographic correction.
 
 The regime indicator survives as a mixture over whole trajectories:
 
@@ -28,11 +27,11 @@ The regime indicator survives as a mixture over whole trajectories:
     p(\\ell_{i\\cdot}) = (1 - \\pi_g) \\prod_s \\mathcal{N}(\\ell_{is} \\mid \\alpha_i + \\delta_s, \\sigma_\\varepsilon^2)
     + \\pi_g \\prod_s \\mathcal{N}(\\ell_{is} \\mid \\alpha_i + \\delta_s + \\beta_i (d_s - \\kappa_i)_+, \\sigma_\\varepsilon^2),
 
-which is what makes the model falsifiable: it predicts that the posterior of
-:math:`\\kappa_i` for wall athletes concentrates near 30-35 km rather than
-spreading uniformly over the race, and that a hot year should move
-:math:`\\kappa` *earlier* as well as raising :math:`\\pi`.  A statistical
-artefact has no reason to put its change-point anywhere in particular.
+The prior already favours change-points near 30 km, so concentration there is
+not independent validation.  As :math:`\\beta_i` approaches zero, the increasing
+trajectory approaches the flat branch, weakening identification of component
+membership and the change-point.  Weather is not included in this model, and
+year differences alone would not identify its causal effect.
 
 The hinge is replaced by a softplus of width ``hinge_width`` so that NUTS sees a
 differentiable likelihood; as the width goes to zero it recovers the exact
@@ -116,7 +115,7 @@ def build_changepoint_model(
         observed = pm.Data("log_pace", panel.log_pace, dims=("athlete", "segment"))
         codes = pm.Data("group_code", panel.group_codes, dims="athlete")
 
-        # Shared course profile, sum-to-zero so that alpha carries the level.
+        # Shared segment profile, sum-to-zero so that alpha carries the level.
         delta_raw = pm.Normal("delta_raw", mu=0.0, sigma=0.3, shape=n_segments - 1)
         delta = pm.Deterministic(
             "delta", pt.concatenate([delta_raw, -pt.sum(delta_raw, keepdims=True)]), dims="segment"
@@ -168,10 +167,17 @@ def build_changepoint_model(
 
 
 def summarise_changepoints(idata: az.InferenceData, responsibility_floor: float = 0.8) -> pd.DataFrame:
-    """Posterior change-point locations for athletes confidently in the wall regime."""
+    """Summarise athlete posterior means above a component-probability threshold.
+
+    Selection uses the posterior arithmetic mean responsibility.  The reported
+    ``kappa_q10/q50/q90`` are quantiles across selected athletes' posterior mean
+    locations, not posterior credible intervals.  Legacy ``wall`` labels refer
+    only to the increasing-trajectory component.  Archived summaries generated
+    before the responsibility correction are not recomputed by this function.
+    """
     posterior = idata.posterior
     kappa = posterior["kappa"].mean(dim=("chain", "draw")).to_numpy()
-    r = np.exp(posterior["log_r_wall"].mean(dim=("chain", "draw")).to_numpy())
+    r = np.exp(posterior["log_r_wall"]).mean(dim=("chain", "draw")).to_numpy()
     wall = r >= responsibility_floor
     return pd.DataFrame(
         {

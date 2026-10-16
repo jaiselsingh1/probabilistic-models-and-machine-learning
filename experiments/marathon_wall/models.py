@@ -1,14 +1,18 @@
-"""The three competing generative models for the deceleration metric.
+"""Archived Bayesian density models for the deceleration metric.
+
+The current submission uses :mod:`.audited_analysis`.  This module preserves
+the exploratory fits; their component labels are statistical, not diagnosed
+physiological states.
 
 All three are hierarchical over a grouping ``g`` (here sex x start wave, or sex
 x year), and all three are fitted to the same vector ``y``:
 
 ``gaussian``
-    The null of a single continuous fatigue distribution,
+    A single Gaussian reference density,
     :math:`y_i \\sim \\mathcal{N}(\\mu_g, \\sigma_g^2)`.
 
 ``mixture``
-    The two-regime hypothesis, marginalised over the latent indicator so that
+    A two-component density, marginalised over the latent indicator so that
     NUTS sees a smooth posterior:
 
     .. math::
@@ -16,16 +20,15 @@ x year), and all three are fitted to the same vector ``y``:
         + \\pi_g\\,\\mathcal{N}(y_i \\mid \\mu_{1,g}, \\sigma_{1,g}^2).
 
     Label switching is removed structurally rather than by post-hoc relabelling:
-    the wall component's mean is built as
+    the higher-mean component's mean is built as
     :math:`\\mu_{1,g} = \\mu_{0,g} + \\exp(\\lambda_g)`, so
     :math:`\\mu_{0,g} < \\mu_{1,g}` holds on every draw and the hierarchical
     prior on :math:`\\lambda_g` is still unconstrained.
 
 ``skewnormal``
-    The decisive control.  A single skew-normal is unimodal by construction, so
-    if the mixture only wins because the deceleration distribution has a long
-    right tail, this model wins instead -- it buys the same right skew with one
-    parameter rather than three.
+    A unimodal asymmetric reference density.  A mixture can improve prediction
+    by fitting tail weight or other shape features this family cannot express.
+    Beating this reference does not establish bimodality or distinct states.
 """
 
 from __future__ import annotations
@@ -84,15 +87,10 @@ def _hierarchical_scalar(
 ) -> pt.TensorVariable:
     """Hierarchical normal for one group-level scalar.
 
-    The parameterisation is *centred* by default, which is the right choice
-    here and not the reflex one.  The non-centred form is the standard remedy
-    for a funnel, but the funnel appears when each group's data is weak; with
-    ~1e4 athletes per group the likelihood pins every group mean tightly, and it
-    is then the non-centred form that becomes badly conditioned -- the sampler
-    must move ``tau`` and the offsets in lockstep to keep the implied group mean
-    where the data demands.  In testing the non-centred version drove NUTS to
-    its maximum tree depth on essentially every iteration; the centred version
-    samples the same posterior an order of magnitude faster.
+    The archived implementation defaults to a centred parameterisation.
+    Its suitability depends on the likelihood and group information; sample
+    size alone does not establish good geometry, especially for mixtures.
+    Convergence and sampler diagnostics must be checked for each fit.
     """
     mu = pm.Normal(f"{name}_mu", mu=mu_prior[0], sigma=mu_prior[1])
     tau = pm.HalfNormal(f"{name}_tau", sigma=tau_prior)
@@ -114,6 +112,8 @@ def build_model(
     ``scale_hint`` sets the prior scale; it defaults to the empirical standard
     deviation of ``y``, which keeps the priors weakly informative on whatever
     units the metric happens to carry rather than hard-coding Boston's.
+    This default uses the supplied observations to set prior scales, so it is
+    an empirical prior choice; predictive evaluation must account for that.
     """
     y = np.asarray(y, dtype=float)
     if y.shape != groups.codes.shape:
@@ -178,9 +178,9 @@ def sample_model(
     """Sample, then attach a *thinned* pointwise log-likelihood.
 
     With N ~ 3e4 athletes a full 4000-draw log-likelihood array is ~1 GB per
-    model; thinning to every fourth draw keeps PSIS-LOO well inside memory
-    without materially changing the estimate, since the draws are autocorrelated
-    anyway.  Pass ``compute_log_likelihood=False`` for a model whose likelihood
+    model; thinning to every fourth draw reduces memory use, at the cost of
+    fewer draws for PSIS-LOO.  Its Monte Carlo accuracy still needs checking.
+    Pass ``compute_log_likelihood=False`` for a model whose likelihood
     is expressed as a :class:`pm.Potential` (the change-point model), where PyMC
     has no observed variable to evaluate pointwise.
     """

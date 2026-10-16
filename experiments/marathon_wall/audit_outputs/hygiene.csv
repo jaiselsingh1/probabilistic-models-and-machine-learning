@@ -1,0 +1,13 @@
+race,step,n_before,n_after,dropped,blanked_mats,repaired_mats
+llimllib-2013,rows in raw file,16164,16164,0,0.0,40.0
+llimllib-2013,drop wheelchair / handcycle / push-rim,16164,16112,52,0.0,40.0
+llimllib-2013,drop duplicate bibs,16112,16105,7,0.0,40.0
+llimllib-2013,"drop segment pace outside [2.0, 20.0] min/km",16105,16104,1,0.0,40.0
+llimllib-2013,drop missing or unsupported recorded sex field,16104,16104,0,0.0,40.0
+llimllib-2014,rows in raw file,31984,31984,0,0.0,296.0
+llimllib-2014,drop wheelchair / handcycle / push-rim,31984,31931,53,0.0,296.0
+llimllib-2014,drop duplicate bibs,31931,31931,0,0.0,296.0
+llimllib-2014,"drop segment pace outside [2.0, 20.0] min/km",31931,31891,40,0.0,296.0
+llimllib-2014,drop missing or unsupported recorded sex field,31891,31891,0,0.0,296.0
+llimllib-2013,require real positive metric endpoints,16104,16058,46,,
+llimllib-2014,require real positive metric endpoints,31891,31633,258,,

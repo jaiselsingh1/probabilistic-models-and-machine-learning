@@ -52,9 +52,9 @@ CHECKPOINT_KM: Final[Mapping[str, float]] = {
     "finish": 42.195,
 }
 
-# Pace bounds (min/km) outside which a *segment* is physiologically impossible
-# for a mass-participation road race: 2.0 min/km is faster than the world
-# record, 20.0 min/km is slower than a brisk walk.
+# Broad quality-control bounds, not physiological impossibility claims.
+# In particular, a slow segment can reflect a real stop or medical problem;
+# this filter changes the target to records passing these bounds.
 _MIN_SEGMENT_PACE: Final[float] = 2.0
 _MAX_SEGMENT_PACE: Final[float] = 20.0
 
@@ -164,18 +164,20 @@ def parse_clock_series(values: pd.Series, time_format: str, missing_tokens: Sequ
     if time_format == "minutes":
         parsed = pd.to_numeric(text, errors="coerce")
     elif time_format == "clock":
-        parts = text.str.split(":", expand=True)
-        if parts.shape[1] == 0:
-            parsed = pd.to_numeric(text, errors="coerce")
-        else:
-            numeric = parts.apply(pd.to_numeric, errors="coerce")
-            if numeric.shape[1] == 2:  # MM:SS
-                parsed = numeric[0] + numeric[1] / 60.0
-            else:  # HH:MM:SS (extra columns, if any, are ignored)
-                parsed = numeric[0] * 60.0 + numeric[1] + numeric[2] / 60.0
-            # Rows that were plain decimals rather than clock strings.
-            fallback = pd.to_numeric(text, errors="coerce")
-            parsed = parsed.where(parsed.notna(), fallback)
+        # Parse by each row's format, so mixed MM:SS / HH:MM:SS / decimal
+        # columns work and an all-missing column cannot index absent fields.
+        parsed = pd.to_numeric(text, errors="coerce")
+        for pattern, hours in ((r"^(\d+):(\d{1,2}(?:\.\d+)?)$", False),
+                               (r"^(\d+):(\d{1,2}):(\d{1,2}(?:\.\d+)?)$", True)):
+            parts = text.str.extract(pattern).apply(pd.to_numeric, errors="coerce")
+            seconds = parts[2] if hours else parts[1]
+            valid = seconds.ge(0) & seconds.lt(60)
+            if hours:
+                valid &= parts[1].ge(0) & parts[1].lt(60)
+                value = 60 * parts[0] + parts[1] + seconds / 60
+            else:
+                value = parts[0] + seconds / 60
+            parsed = parsed.where(~valid.fillna(False), value)
     else:  # pragma: no cover - guarded by SplitSchema construction
         raise ValueError(f"unknown time_format {time_format!r}")
 
@@ -200,10 +202,9 @@ def _derive_wave(bib_numeric: pd.Series, n_waves: int = 4) -> pd.Series:
 def _enforce_monotone(cumulative: pd.DataFrame, report: HygieneReport) -> pd.DataFrame:
     """Blank out mats that violate strict monotonicity of cumulative time.
 
-    A cumulative split that is not strictly greater than the previous one is a
-    mat misread (a cross-read from a neighbouring chip, or a duplicated
-    transponder).  Blanking the offending checkpoint rather than the athlete
-    keeps the rest of their trajectory usable.
+    A non-increasing cumulative split is internally inconsistent. Its cause
+    and the location of the original error are unknown; this conservative
+    left-to-right rule may blank later reads after an erroneously large one.
     """
     values = cumulative.to_numpy(dtype=float, copy=True)
     n_rows, n_cols = values.shape
@@ -294,8 +295,10 @@ def load_race(
     report.repaired_mats = n_repaired
 
     # --- plausibility ------------------------------------------------------------
-    segment_times = np.diff(cumulative.to_numpy(dtype=float), axis=1)
-    segment_pace = segment_times / np.diff(distances)
+    # Include the start-to-first-checkpoint segment in the same check.
+    with_start = np.column_stack([np.zeros(len(cumulative)), cumulative.to_numpy(dtype=float)])
+    segment_times = np.diff(with_start, axis=1)
+    segment_pace = segment_times / np.diff(np.r_[0.0, distances])
     with warnings.catch_warnings():
         # An athlete with no usable mat at all yields an all-NaN slice; they are
         # kept here and removed later by the metric's completeness requirement.
@@ -317,7 +320,7 @@ def load_race(
         raw.loc[valid_sex], cumulative.loc[valid_sex], imputed.loc[valid_sex],
         bib_text.loc[valid_sex], sex.loc[valid_sex],
     )
-    report.record("drop missing / non-binary sex field", before, len(raw))
+    report.record("drop missing or unsupported recorded sex field", before, len(raw))
 
     bib_numeric = pd.to_numeric(bib_text.str.extract(r"(\d+)", expand=False), errors="coerce")
     tidy = pd.DataFrame(index=raw.index)
