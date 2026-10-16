@@ -199,8 +199,8 @@ Gaussian or a single skew-normal, and would that justify calling its components
 approximation need not identify two physiological states.
 
 \textit{(2) Data and processing.} I use the public
-\href{https://github.com/llimllib/bostonmarathon/tree/f49b44950cdd13fdeaf1661ba921edbe3dfabff7}{\textnormal{llimllib/bostonmarathon}}
-scrape of BAA results, pinned to commit \textnormal{f49b449}. Its scraper retrieves
+\href{https://github.com/llimllib/bostonmarathon}{\textnormal{llimllib/bostonmarathon}}
+scrape of BAA results. Its scraper retrieves
 individual race-result pages and exports cumulative checkpoint times in minutes,
 rounded to two decimals. The 2013 and 2014 files contain 16,164 and 31,984 rows;
 variables include bib, recorded sex, age, and times at 5, 10, 20, 21.0975, 25, 30,
@@ -223,7 +223,8 @@ For cumulative time $T_d$ at distance $d$, define
  y_i=r_i-\widehat q_{.25}(a_i).
 \]
 Here $a_i$ is baseline pace and $r_i>0$ means the 30--40\,km window was slower.
-The reference is the training sample's 25th percentile of $r$ in 40 baseline-pace
+Negative $y_i$ means less slowing than the reference, not necessarily a faster
+late pace. The reference is the training sample's 25th percentile of $r$ in 40 baseline-pace
 bins, interpolated between bin medians and held constant beyond them.
 Figure~\ref{fig:audit-wall}a explores the raw relationship; panels b--c show the
 centered distributions. This is empirical centering, \emph{not} a terrain
@@ -251,7 +252,8 @@ and the latent-class model
 I split records 80/20 within groups (seed 20261016; \auditTrainN{} training,
 \auditTestN{} held out), estimate the reference only on training records, and fit
 by maximum likelihood: closed form for $\mathcal M_0$, six-start numerical
-optimization for $\mathcal M_s$, and six-start EM for the mixture.
+optimization for $\mathcal M_s$, and six-start EM for the mixture, alternating
+probabilistic component assignments with weighted parameter updates.
 To prevent the mixture's unbounded likelihood at a collapsed component, each
 standard deviation is constrained to at least $\max(10^{-4},0.02s_g)$, where
 $s_g$ is the training standard deviation; all selected fits converge and none
