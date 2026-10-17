@@ -9,7 +9,8 @@
 - [Detailed audit](hw1-audit.md): supporting derivation, data, and interpretation
   checks.
 
-For a GitHub submission, select
-`jaiselsingh1/probabilistic-models-and-machine-learning`, branch **`main`**.
-The PDF is `homeworks/hw1.pdf`; the code that produces its results is in
-`homeworks/hw1/`.
+For Gradescope, choose **Upload** and submit an HW1-only ZIP using the packaging
+command in [the code README](hw1/README.md#prepare-a-gradescope-code-submission).
+The GitHub option imports the entire selected branch, including unrelated
+coursework. Submit `homeworks/hw1.pdf` separately to the written assignment;
+the code that produces its results is in `homeworks/hw1/`.

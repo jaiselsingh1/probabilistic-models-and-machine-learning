@@ -26,8 +26,10 @@ Keep reading notes and progress in separate files; `READINGS.md` is regenerated 
 
 All code used for the submitted analysis lives in `homeworks/hw1/`. Its README
 provides a minimal pinned Python environment, data download, analysis, independent
-checks, expected results, and optional PDF compilation. For the GitHub submission
-option, select this repository and branch **main**.
+checks, expected results, and optional PDF compilation. For Gradescope, use the
+**Upload** option with the HW1-only ZIP described in that README. Selecting this
+repository's `main` branch through GitHub uploads the entire coursework repository,
+including reader reports and exploratory work.
 
 Q3 compares Gaussian, skew-normal, and two-Gaussian mixture densities using a
 fixed held-out sample and training-only preprocessing. Better predictive fit
