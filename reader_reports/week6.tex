@@ -1,0 +1,71 @@
+\documentclass[12pt]{article}
+
+% Match weeks 2--5 using fonts available in the local TeX installation.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amsfonts} % for \mathbb{E}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Week 6: Introduction to Variational Inference} \\
+Jaisel Singh (js6897) \\
+October 21, 2026
+\end{flushleft}
+
+\vspace{0.1in}
+
+What stood out to me in Blei, Kucukelbir, and McAuliffe's review was that
+inference becomes an optimization problem rather than a sampling problem. We
+choose a family of densities over the latent variables and search within it for the
+member closest to the posterior in KL divergence. The obstacle is that
+this divergence contains the log evidence, the quantity we could not compute in
+the first place, so we maximize the evidence lower bound instead. Because the
+ELBO equals the log evidence minus that divergence, maximizing it minimizes the
+divergence without ever evaluating the constant. I found the second form,
+\mbox{$\mathbb{E}[\log p(x \mid z)] - \mathrm{KL}(q(z) \| p(z))$}, the clearest
+way to see the tradeoff: fit to the observed data against staying close to the
+prior. It also makes week 3's stochastic optimization directly relevant, since the
+ELBO is one more objective to climb.
+
+The cost of this convenience is where the review was most useful to me. The
+mean-field family treats the latent variables as mutually independent, each with
+its own factor, which makes coordinate ascent cheap but removes any ability to
+represent dependence among them. The authors are direct that variational
+inference generally underestimates posterior variance, a consequence of the
+objective rather than a fixable implementation detail. They also say
+plainly that the relative accuracy of variational inference and MCMC is still not
+understood. That contrast sharpens week 4 for me: MCMC pays in computation for
+samples that are asymptotically exact, while this pays in accuracy for speed, and
+the value of the ELBO at convergence does not report how large that error is.
+
+Jordan, Ghahramani, Jaakkola, and Saul arrive at the same methods from an older
+direction. Their emphasis is convex duality: a concave function can be written as
+a minimum over a family of linear upper bounds, as with
+\mbox{$\ln x \le \lambda x - \ln \lambda - 1$}, where each choice of the
+variational parameter $\lambda$ is tight at one point. Fitting those parameters
+then turns an intractable graphical model into a simpler one where inference runs
+efficiently, and what comes back is a bound on the quantity of interest. Reading
+the two together, the question I am left with is how to check whether the
+independence assumption has distorted the particular posterior summary I care
+about, given that the bound itself will not tell me.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Blei et al.\ (2017), \href{https://arxiv.org/abs/1601.00670}{\emph{Variational Inference: A Review for Statisticians}};
+Jordan et al.\ (1999), \href{https://www.cs.columbia.edu/~blei/fogm/readings/JordanGhahramaniJaakkolaSaul1999.pdf}{\emph{An Introduction to Variational Methods for Graphical Models}}.
+\par}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
