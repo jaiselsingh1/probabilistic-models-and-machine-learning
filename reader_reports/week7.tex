@@ -1,0 +1,71 @@
+\documentclass[12pt]{article}
+
+% Match the earlier reports using locally available fonts.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Week 7: Matrix Factorization and Efficient MAP Inference} \\
+Jaisel Singh (js6897) \\
+October 28, 2026
+\end{flushleft}
+
+\vspace{0.1in}
+
+What stood out to me in Koren, Bell, and Volinsky's review was how a simple
+shared representation can predict a large collection of ratings. In the basic
+model, a user and an item each have a short vector, and their dot product
+predicts the rating. The connection to maximum a posteriori (MAP) inference
+becomes clear if I view squared error as a Gaussian likelihood and quadratic
+regularization as Gaussian priors on the factors. We obtain a point estimate
+of those factors, rather than the distribution approximated in last week's
+variational inference. Alternating least squares also makes the computation
+concrete: fixing one set of factors turns fitting the other into quadratic
+problems, although the joint objective remains nonconvex.
+
+Lee and Seung made me think more carefully about what the factors mean.
+Nonnegative factors reconstruct a face by adding components, so features cannot
+cancel each other through subtraction. Their examples make the role of
+constraints in producing interpretable representations especially clear.
+Kolda and Bader add a useful distinction: some higher-order tensor
+decompositions are unique up to scaling and permutation under conditions that
+do not hold for ordinary matrix factorizations. I find it helpful to separate
+that mathematical identifiability from semantic interpretation. Even a unique
+decomposition would not establish that a component corresponds to a meaningful
+human preference.
+
+Gopalan, Hofman, and Blei show how the observation model also shapes computation.
+Their hierarchical Poisson factorization models consumption with nonnegative
+user and item factors, while accounting for differences in user activity and
+item popularity. I found the treatment of sparse data particularly useful:
+zero entries still contribute to the likelihood, but their contribution can be
+aggregated through sums of factors without visiting every user--item pair.
+Their fitting procedure uses variational inference, connecting this application
+directly to last week. It makes scalability feel like a consequence of modeling
+choices as well as implementation. My remaining question is how to check
+whether factors that predict consumption well capture preferences, or mainly
+reflect which items users had an opportunity to encounter.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Koren et al.\ (2009), \href{https://www.cs.columbia.edu/~blei/fogm/readings/KorenBellVolinsky2009.pdf}{\emph{Matrix Factorization Techniques for Recommender Systems}};
+Lee and Seung (1999), \href{https://www.cs.cmu.edu/~efros/courses/LBMV07/Papers/lee-nature-99.pdf}{\emph{Learning the Parts of Objects by Non-negative Matrix Factorization}};
+Gopalan et al.\ (2015), \href{https://www.cs.columbia.edu/~blei/papers/GopalanHofmanBlei2015.pdf}{\emph{Scalable Recommendation with Hierarchical Poisson Factorization}};
+Kolda and Bader (2009), \href{https://www.cs.columbia.edu/~blei/fogm/readings/KoldaBader2009.pdf}{\emph{Tensor Decompositions and Applications}}.
+\par}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
