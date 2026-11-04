@@ -1,0 +1,74 @@
+\documentclass[12pt]{article}
+
+% Match the earlier reports using locally available fonts.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Week 8: Exponential Families, Conjugate Priors, and GLMs} \\
+Jaisel Singh (js6897) \\
+November 4, 2026
+\end{flushleft}
+
+\vspace{0.1in}
+
+What stood out to me in Bishop and Efron was how much familiar distributions
+share once they are written in exponential-family form. For a regular
+one-parameter family, we can write
+\mbox{$p(y\mid\eta)=h(y)\exp\{\eta T(y)-A(\eta)\}$}.
+The sufficient statistic summarizes the information in an observation about
+$\eta$. The log normalizer also carries information about uncertainty:
+$A'(\eta)$ gives the mean of $T(Y)$, and $A''(\eta)$ gives its variance.
+I found this more useful than
+memorizing separate formulas for each distribution. The same structure
+organizes how observations accumulate information and how uncertainty changes
+with the parameter.
+
+Diaconis and Ylvisaker made conjugacy more interesting to me than a table of
+matched distributions. Under regularity conditions, they characterize familiar
+conjugate priors through linear posterior expectations of mean parameters.
+The beta--Bernoulli example makes this concrete: successes update the first
+beta parameter and failures update the second, so the posterior mean is a
+weighted average of the prior mean and the observed success rate. Their
+introduction also shows that closure under updating alone does not uniquely
+select the usual conjugate family. I found that a useful reminder that
+conjugacy is a computational convenience, and choosing its hyperparameters
+still expresses substantive prior beliefs.
+
+The GLM framework connects these ideas back to week 2. We specify an
+exponential-family response distribution and a link
+\mbox{$g(\mu_i)=x_i^{\mathsf{T}}\beta$}, where
+$\mu_i=\mathbb{E}[Y_i\mid x_i]$. It is the transformed conditional mean that
+is linear in the coefficients; the response itself can be binary or a count.
+The logit link for Bernoulli outcomes and the log link for Poisson outcomes
+make this distinction clear. However, an exponential-family likelihood does
+not automatically give a convenient conjugate posterior over regression
+coefficients: a Gaussian prior on logistic-regression weights still requires
+additional inference machinery. Efron's discussion of overdispersion also
+made me think about the cost of simplicity. My remaining question is how to
+decide when a convenient mean--variance relationship has become too restrictive
+to give trustworthy uncertainty estimates.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Bishop (2006), \emph{Pattern Recognition and Machine Learning}, Section 2.4;
+Diaconis and Ylvisaker (1979), \href{https://www.cs.columbia.edu/~blei/fogm/readings/DiaconisYlvisaker1979.pdf}{\emph{Conjugate Priors for Exponential Families}};
+Efron (2018), \href{https://www.cs.columbia.edu/~blei/fogm/readings/Efron2018.pdf}{\emph{Exponential Families in Theory and Practice}}.
+\par}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
