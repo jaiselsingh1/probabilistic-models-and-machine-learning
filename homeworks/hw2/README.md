@@ -13,7 +13,6 @@ including references.
 - `q1_cavi.py`: full-covariance mean-field CAVI and synthetic validation.
 - `q2_kl.py`: the required Monte Carlo grid search, figures, and numerical macros.
 - `check_kl.py`: independent quadrature and checks of the population/empirical KL identities.
-- `check_preferences.py`: numerical check for an earlier Question 3 draft on preference learning (commit `49143bd`). The current proposal does not use it.
 - `figures/`: PDF figures and generated LaTeX macros. The heatmap mesh is rasterized to prevent seams.
 - `results/`: complete grid estimates and numerical results.
 
@@ -28,7 +27,6 @@ python -m pip install -r requirements.txt
 python q1_cavi.py
 python q2_kl.py
 python check_kl.py
-python check_preferences.py
 latexmk -pdf -interaction=nonstopmode -halt-on-error hw2.tex
 ```
 
@@ -86,10 +84,14 @@ verification step, not a substitute for the assignment's sampling method.
 
 ### Question 3
 
-Question 3 proposes a probabilistic account of distilling a sampling-based
-planner (MPPI) into a policy with guided policy search. It contains no new
-computation in this folder: the pilot figures it quotes come from the separate
-research project and are marked as unaudited in the text. The earlier draft of
-Question 3, on preference learning, is in commit `49143bd`; `check_preferences.py`,
-`figures/q3_numbers.tex` and `results/q3_checks.json` belong to that draft and are
-no longer used by `hw2.tex`.
+Question 3 proposes guided policy search with an MPPI planner, written as
+approximate posterior inference. It asks what should couple the planner to the
+policy and how strongly, why plain copies fail, and whether the loop reaches
+tasks the policy's own exploration cannot. The coupling mechanism is left open:
+the policy can enter as the prior, the proposal or the start distribution. Validation runs from a Gaussian
+calibration check and a two-route experiment with controlled warm starts to
+locomotion and planar pushing on held-out starts. The pilot numbers come from
+the separate research project's November 10 walking experiment (three trained
+copies evaluated on the same 32 starts). The reproduction commands above
+regenerate the Q1 and Q2 analyses and typeset the Q3 proposal. The proposed Q3
+experiments require new rollouts and full-horizon logging.

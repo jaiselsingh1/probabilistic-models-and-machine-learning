@@ -272,122 +272,123 @@ unseen categories contributing zero; no large-sample approximation is needed.
 
 \clearpage
 \textbf{Question 3: Final project proposal}\\
-\textit{Search, then compress: distilling a sampling-based planner into a policy as approximate inference}
+\textit{Search, then distill: guided policy search with a sampling-based planner}
 
 \textit{(a) Problem and importance.}
-A robot must push a box past a post, on the left or on the right. A sampling-based
-planner such as MPPI \citep{williams2017} finds either
-route with no demonstrations: at every control step it simulates thousands of
-perturbed action sequences and averages them, weighting low cost heavily. That
-search is too expensive for most robots. A neural network \emph{policy} that maps
-state to action is cheap to run, but learning one by trial and error explores
-poorly. So let the planner search and train the policy to copy it. Yet a policy that
-copies a planner going left on some runs and right on others pushes straight into
-the post. Guided policy search (GPS) couples the two: the policy copies the planner,
-and a matching term in the planner's cost keeps it near what the policy would do
-\citep{levine2013,mordatch2015}.
+Sampling-based planners such as model predictive path integral control (MPPI)
+\citep{williams2017} can perform contact-rich robot tasks from a cost function and a
+simulator alone, with no demonstrations. They do it by simulating thousands of
+candidate futures at every control step, which most robots cannot afford. A neural
+network policy is cheap to run, but reinforcement learning explores with the
+policy's own action noise, which is weak on such tasks, and imitation learning needs
+teleoperated demonstrations. Guided policy search (GPS) lets the planner do the exploring and the
+policy distill what it finds, while keeping the planner near what the policy can
+follow \citep{levine2013,mordatch2015,chebotar2017}. The loop is finished when the
+two agree and each performs the task alone.
 
-In my research on GPS with MPPI as the planner, plain copies of a competent planner
-often fail, and three explanations compete. \emph{Jitter:} a few samples carry each
-weighted average, so the planner's actions are noisy. \emph{Plan dependence:} the
-planner's action depends on the plan it carries from the previous step as well as on
-the state, and the policy sees only the state. \emph{Coverage:} the planner's data
-lie on the narrow set of states it visits, not on the states the policy reaches
-\citep{ross2011}. Each calls for a different remedy: more samples, a tie to the
-policy, or noise injection \citep{laskey2017}. In early, unaudited diagnostics on
-one locomotion task, the state explained about 4\% of the planner's action variance,
-against about 99\% for a learned controller whose copies succeed. I ask: \emph{can a
-probabilistic account of the planner--policy loop separate these causes from logged
-data, and does it say how strongly to tie the planner to the policy?} An answer
-would help robots learn skills without teleoperated demonstrations.
+With MPPI as the planner, three questions are open. \emph{What should couple the
+planner to the policy, and how strongly?} Early on the policy should copy the planner
+and the planner should ignore the policy, which cannot yet do the task. The coupling
+should grow only as the policy earns it, and never so far that the planner stops
+succeeding.
+\emph{Why do plain copies fail?} In a locomotion pilot, a planner whose commands
+were 99.2\% predictable from the state gave copies that succeeded in 0 of 96 trials;
+training on perturbed planner rollouts with clean action labels \citep{laskey2017}
+raised this to 25 of 96. Candidate causes are sampling jitter, dependence on the
+plan MPPI carries from step to step, which the policy cannot see, and training
+states too narrow to show how the planner corrects errors \citep{ross2011}.
+\emph{Does the loop reach tasks that the policy's own exploration cannot?} Written
+as approximate posterior inference, each coupling, its strength and each cause can
+be estimated.
 
 \textit{(b) Data.}
-I generate all data in simulation (MuJoCo). Each planner call records the state $x$,
-the carried plan $U$, the $K$ sampled action sequences with their costs and weights,
-and the executed action. Each policy run records success or failure. The tasks are (1) a linear-quadratic problem with a closed-form answer,
-(2) a point mass with two symmetric routes around an obstacle, and (3) standard
-benchmark tasks, one in locomotion and one in planar pushing. \emph{Benefits:} the
-planner's whole weighted sample set is observed, not only its action, and exact
-resets let me re-run the planner at an identical state with new random seeds or a
-different carried plan, which robot logs never allow. \emph{Limitations:} there is
-no real-robot evidence, and outcomes are chaotic: in pilot runs, moving a start
-state by $0.001$ changed 5 to 13 of 32 outcomes for a fixed policy.
+All data come from simulation (MuJoCo). The tasks rise in difficulty: a
+linear-quadratic system and a point mass with two routes around a post, where the
+answers are known; benchmark locomotion; and planar pushing, a contact-rich
+manipulation task usually taught from teleoperated demonstrations. At selected
+states from planner and policy rollouts I will save the simulator state $x$, carried
+plan $U$, candidate action sequences, costs, weights, the clean command and the
+executed action. \emph{Benefits:} no demonstrations are needed, the planner's whole
+weighted sample set is observed, and resets let me change the plan or random seed at
+a fixed physical state. \emph{Limitations:} transfer to a physical robot is open,
+and the policy can only learn tasks the planner already solves.
 
 \textit{(c) Probabilistic model and inference.}
-\emph{The planner as posterior inference.} From state $x$, let
-$V=(u_0,\ldots,u_{H-1})$ be an action sequence, $x_t$ the states of its
-deterministic rollout, and $S(V;x)$ its total cost. Introduce a binary variable $O$
-with $P(O=1\mid V,x)\propto\exp(-S(V;x)/\lambda)$, and let the policy define a prior
-$p_\theta(V\mid x)=\prod_t\N(u_t;\pi_\theta(x_t),s^2I)$. Then
+Let $V=(u_0,\ldots,u_{H-1})$ be a plan, $x_t$ its deterministic rollout from $x$,
+and $S(V;x)\geq0$ its task cost. Model optimality as a binary observation
+with $P(O=1\mid V,x)=e^{-S(V;x)/\lambda}$, $\lambda>0$. A Gaussian policy prior
+then gives the latent plan $V$ the unnormalized posterior density
 \[
-p_\theta(V\mid O=1,x)\ \propto\
-\exp\!\Bigl(-\tfrac1\lambda\Bigl[S(V;x)+\tfrac{\alpha}{2}\sum\nolimits_t
-\|u_t-\pi_\theta(x_t)\|^2\Bigr]\Bigr),\qquad \alpha=\lambda/s^2 .
+ h(V)=e^{-S(V;x)/\lambda}p_\theta(V\mid x),\qquad
+ p_\theta(V\mid x)=\prod_{t=0}^{H-1}\mathcal N\bigl(u_t;\pi_\theta(x_t),s^2I\bigr).
 \]
-The matching term of \citet{mordatch2015} is therefore a Gaussian policy prior, and
-its weight is that prior's precision scaled by the temperature $\lambda$. MPPI draws
-$V_k\sim\N(U,\sigma^2I)$ around its carried plan and returns $\sum_kw_kV_k$, with
-$w_k$ proportional to the exponential above: a self-normalized importance-sampling
-estimate of a posterior mean, in which $U$ acts as a second prior. The latent
-variables are the trajectory $V$ and, from the policy's side, the unobserved plan $U$.
+MPPI draws $V_k$ from a proposal $g$, by default $\mathcal N(U,\sigma^2I)$ around its
+carried plan $U$, and averages them with normalized weights proportional to
+$h(V_k)/g(V_k)$ to estimate the posterior mean \citep{williams2017}. The policy can
+enter this inference in three places, which I treat as interchangeable candidates.
+\emph{As the prior:} the familiar matching term in the planner's cost, with
+coefficient $\lambda/(2s^2)$, which changes what the planner converges to. \emph{As
+the proposal:} candidates drawn around the policy's actions, which leave the target
+unchanged and alter only the estimator's variance. \emph{As the start
+distribution:} search from states the policy visits. Weights proportional to
+$h(V_k)$ alone, common in practice, target $gh$ instead: the mean then depends on
+$U$ even as $K\to\infty$.
 
-\emph{The loop as variational EM.} For any distribution $q$ over $V$, up to a constant,
-$\log p_\theta(O=1\mid x)\ge\E_q[-S/\lambda]-\KL(q\,\|\,p_\theta(\cdot\mid x))$.
-The E-step is the planner's search, which approximates the posterior. The M-step
-maximizes $\E_q[\log p_\theta(V\mid x)]$: least-squares regression of the planner's
-actions on $\pi_\theta$, which is the copying step, and
-$s^2\leftarrow$ the mean squared residual. I will compare three rules for the tie:
-a fixed $\alpha$; the EM value $\lambda/s^2$, which tightens as planner and policy
-agree; and a tempered prior $p_\theta^{\rho}$ with $\rho$ the policy's estimated
-success rate, so that a policy that cannot yet do the task barely constrains the search.
-
-\emph{Separating the causes.} The effective sample size $1/\sum_kw_k^2$ measures how
-few samples carry an update. For the planner's executed action $a$, the law of total
-variance gives
-\[
-\E\,\tr\Var(a\mid x)=\underbrace{\E\,\tr\Var(a\mid x,U)}_{\text{jitter}}
-+\underbrace{\E\,\tr\Var\bigl(\E[a\mid x,U]\mid x\bigr)}_{\text{plan dependence}} .
-\]
-The left side is the smallest squared error any state-only policy can reach. I
-estimate it by the held-out error of a flexible regression of $a$ on $x$, and the
-jitter term by re-running the planner at the same $(x,U)$ with fresh seeds.
-Coverage is the planner--policy action gap on states the policy reaches.
-
-\emph{Evaluation as a rate.} For tie rule $j$, training seed $r$ and start $i$, the
-successes in $n$ slightly perturbed copies of the start follow
-$y_{jri}\sim\mathrm{Binomial}(n,\operatorname{sigmoid}(\mu_j+a_{jr}+b_i))$, with
-zero-mean normal seed and start effects whose scales are learned (partial pooling).
-I fit this by NUTS and compare rules through the posterior of $\mu_j-\mu_{j'}$.
-\emph{Assumptions:} known deterministic dynamics; constant-variance Gaussian policy
-noise; no proposal correction in the weights, as implemented; outcomes independent
-given the effects.
+\emph{The loop as expectation-maximization.} The E-step is the planner's search. The
+M-step fits the policy to the posterior-weighted candidate actions at their own
+rollout states, with $s^2$ the weighted mean squared residual, which shrinks as
+planner and policy converge. For the strength of a coupling I will compare a fixed value, as in prior work; the EM estimate, which
+tightens as the two agree; and an \emph{earned} value, for example the tempered
+prior $p_\theta^{\rho}$ with $\rho$ the policy's success rate on development starts,
+so that a policy that fails has no influence on the search. Every coupling is capped
+so that the planner's own success rate stays near the uncoupled planner's.
 
 \textit{(d) Validation.}
-\emph{Synthetic ground truth with planted causes.} In the linear-quadratic task the
-posterior over $V$ is Gaussian in closed form, so I can check the sampler's mean,
-its effective sample size and the EM updates exactly; lowering $K$ or $\lambda$
-plants jitter of known size. The two-route task plants plan dependence: the
-posterior is bimodal and its mean fails by construction. Restricting the start
-states plants a coverage gap. The decomposition should recover each planted cause.
+\emph{Known answers.} In the linear-quadratic system with an affine policy the
+posterior is Gaussian and its mean is analytic. A scalar check with zero cost, prior
+$\mathcal N(0,1)$ and proposal $\mathcal N(U,1)$ has limiting means $0$ with
+corrected weights and $U/2$ with raw weights. In the two-route task I will reset to
+one state, start the carried plan toward each route equally often, and replan with
+fresh seeds. For the clean first command $a$,
+\[
+ \operatorname{tr}\Var(a\mid x)
+ =\underbrace{\E_{U\mid x}\operatorname{tr}\Var(a\mid x,U)}_{\text{sampling jitter}}
+ +\underbrace{\operatorname{tr}\Var_{U\mid x}\bigl(\E[a\mid x,U]\bigr)}_{\text{carried-plan dependence}} .
+\]
+Within-plan repeats estimate jitter; between-plan differences in mean commands,
+corrected for Monte Carlo error, estimate plan dependence.
 
-\emph{Robot tasks.} Across settings ($K$, $\lambda$, tie rule, noise injection), I
-test whether the three components predict a copied policy's success rate on held-out
-starts better than offline imitation error does. I compare the tie
-rules under the hierarchical model, with posterior predictive checks on per-start
-counts, and track $\KL(q\,\|\,p_\theta)$ over rounds as the measure of planner and
-policy converging. Baselines are copying with no tie, DAgger \citep{ross2011}, and
-generative predictive control \citep{kurtz2025}, the closest planner--policy loop,
-which has no cost tie. If no tie rule matters once coverage is repaired, that is the
-finding I will report.
+\emph{Robot tasks.} The same fixed-state protocol runs at states visited by the
+planner and by the policy. Relative to plain copying I will change one thing at a
+time: the number of samples $K$, the coupling, and coverage (perturbed rollouts
+with clean labels, with DAgger \citep{ross2011} as a comparison). I predict that
+more samples help most when within-plan jitter is large, a prior coupling when
+between-plan differences persist, and wider coverage when error grows on the
+policy's states.
+
+\emph{Claims,} each tested on held-out starts in locomotion and in pushing: (1) the
+policy alone recovers most of the planner's success rate from the cost alone; (2)
+a coupling whose strength is earned beats no coupling, a fixed one and DAgger; (3)
+reinforcement learning with the same cost and simulator budget does not reach the
+same success. Generative predictive control \citep{kurtz2026}, the closest loop,
+which couples through shared samples, is the main baseline. A Bernoulli logistic
+model with a method effect and Gaussian varying effects for trained policy and
+start, fit by NUTS, gives method differences with credible intervals. The model,
+diagnostics and evaluation are fixed; the coupling is not, and I expect to move
+among candidates as results arrive. If no coupling matters once coverage is
+repaired, I will report that.
 
 \textbf{References}
 {\footnotesize
 \setlength{\bibsep}{0pt}
 \makeatletter\renewcommand\section{\@gobbletwo}\makeatother
 \begin{thebibliography}{9}
-\bibitem[Kurtz and Burdick(2025)]{kurtz2025} V.~Kurtz, J.~W.~Burdick.
+\bibitem[Chebotar et~al.(2017)]{chebotar2017} Y.~Chebotar, M.~Kalakrishnan,
+A.~Yahya, A.~Li, S.~Schaal, S.~Levine. \href{https://arxiv.org/abs/1610.00529}{Path
+integral guided policy search.} ICRA, 2017.
+\bibitem[Kurtz and Burdick(2026)]{kurtz2026} V.~Kurtz, J.~W.~Burdick.
 \href{https://arxiv.org/abs/2502.13406}{Generative predictive control: flow matching
-policies for dynamic and difficult-to-demonstrate tasks.} arXiv:2502.13406, 2025.
+policies for dynamic and difficult-to-demonstrate tasks.} ICRA, 2026.
 \bibitem[Laskey et~al.(2017)]{laskey2017} M.~Laskey, J.~Lee, R.~Fox, A.~Dragan,
 K.~Goldberg. \href{https://arxiv.org/abs/1703.09327}{DART: Noise injection for robust
 imitation learning.} CoRL, 2017.
