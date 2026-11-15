@@ -6,7 +6,6 @@
 \input{figures/q1_numbers}
 \input{figures/q2_numbers}
 \input{figures/q2_continuous}
-\input{figures/q3_numbers}
 
 % Keep the previous homework's fonts, 12pt text, and one-inch margins.
 \setlength{\parskip}{0.65ex plus 0.1ex minus 0.1ex}
@@ -23,7 +22,7 @@
 \begin{document}
 \begin{flushleft}
 \textbf{Homework 2}\\
-Jaisel Singh (js6897) \hfill November 13, 2026
+Jaisel Singh (js6897) \hfill November 14, 2026
 \end{flushleft}
 
 \textbf{Question 1: Variational Inference for Matrix Factorization}
@@ -273,141 +272,137 @@ unseen categories contributing zero; no large-sample approximation is needed.
 
 \clearpage
 \textbf{Question 3: Final project proposal}\\
-\textit{Knowing when to stop: preference learning when the feedback model is uncertain}
+\textit{Search, then compress: distilling a sampling-based planner into a policy as approximate inference}
 
 \textit{(a) Problem and importance.}
-At a junction, a robot can take an exit worth one point or follow a route to a
-four-point delivery. A person sees two one-move clips. In A, the robot takes the
-exit. In B, it starts toward the delivery and the clip ends before it earns any
-points. Which move was better? Counting points earned during the clip
-(\emph{partial return}, PR) favors A, one to zero. Judging what the move gave up
-(\emph{regret}, REG) favors B. Taking the exit forfeits three attainable points,
-while starting the delivery forfeits none \citep{knox2024}.
+A robot must push a box past a post, on the left or on the right. A sampling-based
+planner such as MPPI \citep{williams2017} finds either
+route with no demonstrations: at every control step it simulates thousands of
+perturbed action sequences and averages them, weighting low cost heavily. That
+search is too expensive for most robots. A neural network \emph{policy} that maps
+state to action is cheap to run, but learning one by trial and error explores
+poorly. So let the planner search and train the policy to copy it. Yet a policy that
+copies a planner going left on some runs and right on others pushes straight into
+the post. Guided policy search (GPS) couples the two: the policy copies the planner,
+and a matching term in the planner's cost keeps it near what the policy would do
+\citep{levine2013,mordatch2015}.
 
-The robot knows the map and the effects of its moves. Each round it chooses two
-clips and observes which one the person prefers. From these answers it infers
-what outcomes the person values and how they judge a clip. It can ask again or
-deploy its current \emph{policy}, the rule it uses to choose a move at each state.
-A wrong stop deploys a policy whose expected total reward falls more than a chosen
-tolerance below the best achievable reward. Can we use fewer labels at the same
-wrong-stop rate by asking about clips that reveal whether the policy meets that tolerance?
-
-Posterior-regret stopping \citep{larian2025} depends on the feedback model.
-Adaptive queries can also reinforce a wrong model \citep{sloman2022}.
-Consider a missing reward feature. Three trajectories $z\in\{-1,0,1\}$ have true
-utility $z-2z^2$, highest at $0$. A learner fits $\theta z$ with
-$\theta\sim\mathrm{Unif}[-1.5,1.5]$. With unit logistic inverse temperature and no
-lapses, the outer pair maximizes Fisher information about $\theta$ throughout
-the prior range. The curvature cancels from this comparison. After nine of ten
-answers favor $+1$, the posterior gives $\prefLinearPct\%$ probability that
-deploying $+1$ loses at most $0.1$ points. Its true loss is $\prefTrueRegret$.
-Against $0$, the chance of favoring $+1$ is $\prefDiagnosticTruth$ under the truth
-and $\prefDiagnosticPosterior$ under the fitted posterior. If the learner adds
-$\kappa z^2$, outer-pair answers leave its independent prior on $\kappa$ unchanged.
-For zero-mean Gaussian priors with standard deviations $1$ and $0.5$, confidence
-is $\prefWidePct\%$ and $\prefNarrowPct\%$, respectively. Only the narrower prior
-clears the $95\%$ stopping cutoff.
+In my research on GPS with MPPI as the planner, plain copies of a competent planner
+often fail, and three explanations compete. \emph{Jitter:} a few samples carry each
+weighted average, so the planner's actions are noisy. \emph{Plan dependence:} the
+planner's action depends on the plan it carries from the previous step as well as on
+the state, and the policy sees only the state. \emph{Coverage:} the planner's data
+lie on the narrow set of states it visits, not on the states the policy reaches
+\citep{ross2011}. Each calls for a different remedy: more samples, a tie to the
+policy, or noise injection \citep{laskey2017}. In early, unaudited diagnostics on
+one locomotion task, the state explained about 4\% of the planner's action variance,
+against about 99\% for a learned controller whose copies succeed. I ask: \emph{can a
+probabilistic account of the planner--policy loop separate these causes from logged
+data, and does it say how strongly to tie the planner to the policy?} An answer
+would help robots learn skills without teleoperated demonstrations.
 
 \textit{(b) Data.}
-\emph{Synthetic.} In deterministic, undiscounted gridworlds with a finite horizon
-and three or four reward features, a simulated judge labels clip pairs. From a common
-start, complete runs have the same PR and REG score difference at fixed $w$.
-I will use those as controls and include junction pairs where ending the clip early
-reverses the two rules' rankings. The simulator provides fresh labels and exact
-policy regret under the hidden reward.
-\emph{Human.} In the data of \citet{knox2024}, participants learned a specified
-gridworld reward. I can evaluate policies under that objective and test predictions
-of people's choices. Their individual utilities are unobserved, and replay is
-limited to previously labeled pairs.
+I generate all data in simulation (MuJoCo). Each planner call records the state $x$,
+the carried plan $U$, the $K$ sampled action sequences with their costs and weights,
+and the executed action. Each policy run records success or failure. The tasks are (1) a linear-quadratic problem with a closed-form answer,
+(2) a point mass with two symmetric routes around an obstacle, and (3) standard
+benchmark tasks, one in locomotion and one in planar pushing. \emph{Benefits:} the
+planner's whole weighted sample set is observed, not only its action, and exact
+resets let me re-run the planner at an identical state with new random seeds or a
+different carried plan, which robot logs never allow. \emph{Limitations:} there is
+no real-robot evidence, and outcomes are chaotic: in pilot runs, moving a start
+state by $0.001$ changed 5 to 13 of 32 outcomes for a fixed policy.
 
 \textit{(c) Probabilistic model and inference.}
-For each simulated annotator draw $u\sim\N(0,I_d)$ and set $w=u/\|u\|$ to fix reward
-scale. Give the mechanisms $m\in\{\mathrm{PR},\mathrm{REG}\}$ equal prior probability.
-Independently draw inverse temperature $\beta\sim\mathrm{Gamma}(2,1)$ (shape, rate)
-and lapse probability $\lambda\sim\mathrm{Beta}(1,9)$. For $h=(w,m,\beta,\lambda)$,
-past comparisons $D_{t-1}$, and the chosen segment pair $q_t=(a_t,b_t)$, let
+\emph{The planner as posterior inference.} From state $x$, let
+$V=(u_0,\ldots,u_{H-1})$ be an action sequence, $x_t$ the states of its
+deterministic rollout, and $S(V;x)$ its total cost. Introduce a binary variable $O$
+with $P(O=1\mid V,x)\propto\exp(-S(V;x)/\lambda)$, and let the policy define a prior
+$p_\theta(V\mid x)=\prod_t\N(u_t;\pi_\theta(x_t),s^2I)$. Then
 \[
-P_h(y_t=1\mid D_{t-1},q_t)
-=\lambda/2+(1-\lambda)\operatorname{sigmoid}\!\left(\beta[G_m(a_t;w)-G_m(b_t;w)]\right).
+p_\theta(V\mid O=1,x)\ \propto\
+\exp\!\Bigl(-\tfrac1\lambda\Bigl[S(V;x)+\tfrac{\alpha}{2}\sum\nolimits_t
+\|u_t-\pi_\theta(x_t)\|^2\Bigr]\Bigr),\qquad \alpha=\lambda/s^2 .
 \]
-Here $y_t=1$ favors $a_t$. Along the clip, $G_{\rm PR}$ sums rewards
-$w^\top\phi(s,a)$ and $G_{\rm REG}$ sums $Q_w^*(s,a)-V_w^*(s)$ from backward
-induction, with time in the state. For fixed $h$, each query receives fresh choice
-noise. I will update each mechanism's likelihood at the queries actually asked,
-using sequential Monte Carlo with Metropolis moves for its continuous parameters.
-The two marginal likelihoods give $P(m\mid D_t)$.
+The matching term of \citet{mordatch2015} is therefore a Gaussian policy prior, and
+its weight is that prior's precision scaled by the temperature $\lambda$. MPPI draws
+$V_k\sim\N(U,\sigma^2I)$ around its carried plan and returns $\sum_kw_kV_k$, with
+$w_k$ proportional to the exponential above: a self-normalized importance-sampling
+estimate of a posterior mean, in which $U$ acts as a second prior. The latent
+variables are the trajectory $V$ and, from the policy's side, the unobserved plan $U$.
 
-\newpage
-\textit{(c) Policy and query selection (continued).}
-For a fixed start distribution, policy regret is $\Delta_h(\pi)=V^*_w-V^\pi_w$.
-Let $\hat\pi_t$ minimize posterior expected regret. Define
-$Z_t=\mathbf 1\{\Delta_h(\hat\pi_t)>\varepsilon\}$. Stop if
-$P(Z_t=1\mid D_t)\le\delta$. Otherwise choose the clip pair whose next answer has
-the greatest mutual information with $Z_t$. If every modeled hypothesis accepts the
-policy, $Z_t$ is constant and every pair scores zero. An omitted reward feature can
-still make deployment costly. Part (d) tests whether an independent choice of clips
-can expose it.
+\emph{The loop as variational EM.} For any distribution $q$ over $V$, up to a constant,
+$\log p_\theta(O=1\mid x)\ge\E_q[-S/\lambda]-\KL(q\,\|\,p_\theta(\cdot\mid x))$.
+The E-step is the planner's search, which approximates the posterior. The M-step
+maximizes $\E_q[\log p_\theta(V\mid x)]$: least-squares regression of the planner's
+actions on $\pi_\theta$, which is the copying step, and
+$s^2\leftarrow$ the mean squared residual. I will compare three rules for the tie:
+a fixed $\alpha$; the EM value $\lambda/s^2$, which tightens as planner and policy
+agree; and a tempered prior $p_\theta^{\rho}$ with $\rho$ the policy's estimated
+success rate, so that a policy that cannot yet do the task barely constrains the search.
 
-For the frequentist comparison, enumerate a finite set $H$ of rewards, judgment
-rules, inverse temperatures and lapse rates. With likelihood $L_t(h)$ and fixed
-positive prior masses $p(g)$ summing to one, use
+\emph{Separating the causes.} The effective sample size $1/\sum_kw_k^2$ measures how
+few samples carry an update. For the planner's executed action $a$, the law of total
+variance gives
 \[
-M_t=\sum_{g\in H}p(g)L_t(g),\qquad C_t=\{h\in H:L_t(h)\ge\delta M_t\}.
+\E\,\tr\Var(a\mid x)=\underbrace{\E\,\tr\Var(a\mid x,U)}_{\text{jitter}}
++\underbrace{\E\,\tr\Var\bigl(\E[a\mid x,U]\mid x\bigr)}_{\text{plan dependence}} .
 \]
-For each true $h\in H$, $M_t/L_t(h)$ is a nonnegative martingale starting at one.
-By Ville's inequality, $C_t$ contains $h$ at every time with probability at least
-$1-\delta$. Requiring every member of a nonempty $C_t$ to accept the current policy
-therefore controls wrong stops even as the policy changes. Noisy answers may prevent
-deployment within budget.
+The left side is the smallest squared error any state-only policy can reach. I
+estimate it by the held-out error of a flexible regression of $a$ on $x$, and the
+jitter term by re-running the planner at the same $(x,U)$ with fresh seeds.
+Coverage is the planner--policy action gap on states the policy reaches.
+
+\emph{Evaluation as a rate.} For tie rule $j$, training seed $r$ and start $i$, the
+successes in $n$ slightly perturbed copies of the start follow
+$y_{jri}\sim\mathrm{Binomial}(n,\operatorname{sigmoid}(\mu_j+a_{jr}+b_i))$, with
+zero-mean normal seed and start effects whose scales are learned (partial pooling).
+I fit this by NUTS and compare rules through the posterior of $\mu_j-\mu_{j'}$.
+\emph{Assumptions:} known deterministic dynamics; constant-variance Gaussian policy
+noise; no proposal correction in the weights, as implemented; outcomes independent
+given the effects.
 
 \textit{(d) Validation.}
-Check the sampler against enumeration on small instances and test calibration under
-the prior. On matched tasks with a common stopping rule, compare my score with
-information gain on $h$ and behavior-level acquisition \citep{ellis2024}. With the
-query rule fixed, compare both stopping rules on the same $H$. Include a
-fixed-mechanism baseline \citep{larian2025}. Related designs target regret
-\citep{wilde2020} and model fit \citep{forster2025}.
+\emph{Synthetic ground truth with planted causes.} In the linear-quadratic task the
+posterior over $V$ is Gaussian in closed form, so I can check the sampler's mean,
+its effective sample size and the EM updates exactly; lowering $K$ or $\lambda$
+plants jitter of known size. The two-route task plants plan dependence: the
+posterior is bimodal and its mean fails by construction. Restricting the start
+states plants a coverage gap. The decomposition should recover each planted cause.
 
-Omit a reward feature or switch judgment rules to test for shared blind spots.
-At the first proposed stop, freeze the policy and reserve $k$ labels. Compare
-uniformly sampled pairs with the top-ranked pairs by information gain on $h$ (random ties).
-Choose both batches before seeing answers. For each, compute the joint predictive
-log score under the pre-audit model. This tests an audit motivated by \citet{choudhary2026}.
-Set cutoffs for the same
-false-alarm target on separate in-class runs. Abstain if the score is too low,
-the policy fails its updated check, or fewer than $k$ labels remain.
-
-Across several hundred fresh runs per condition, report wrong stops per run with
-binomial intervals, deployment by budget, labels spent (audits included), and regret
-at deployment. Track false alarms by noise level and score predictions on independent
-test pairs. On human data, hold repeated pairs in one split, score left/right answers,
-and count ties and abstentions. Longer term, when can a policy be certified before
-the judgment rule is identified?
+\emph{Robot tasks.} Across settings ($K$, $\lambda$, tie rule, noise injection), I
+test whether the three components predict a copied policy's success rate on held-out
+starts better than offline imitation error does. I compare the tie
+rules under the hierarchical model, with posterior predictive checks on per-start
+counts, and track $\KL(q\,\|\,p_\theta)$ over rounds as the measure of planner and
+policy converging. Baselines are copying with no tie, DAgger \citep{ross2011}, and
+generative predictive control \citep{kurtz2025}, the closest planner--policy loop,
+which has no cost tie. If no tie rule matters once coverage is repaired, that is the
+finding I will report.
 
 \textbf{References}
 {\footnotesize
 \setlength{\bibsep}{0pt}
 \makeatletter\renewcommand\section{\@gobbletwo}\makeatother
 \begin{thebibliography}{9}
-\bibitem[Choudhary(2026)]{choudhary2026} R.~Choudhary. \href{https://arxiv.org/abs/2611.07529}{Adaptive experimentation can
-hide model error: detection limits and falsification budget.} arXiv:2611.07529, 2026.
-\bibitem[Ellis et~al.(2024)]{ellis2024} E.~Ellis, G.~R.~Ghosal, S.~J.~Russell,
-A.~Dragan, E.~B{\i}y{\i}k. \href{https://liralab.usc.edu/pdfs/publications/ellis2024generalized.pdf}{A generalized acquisition function for preference-based
-reward learning.} ICRA, 2024.
-\bibitem[Forster et~al.(2025)]{forster2025} A.~J.~Forster, D.~R.~Ivanova, T.~Rainforth.
-\href{https://openreview.net/pdf?id=uyNJLdCvFG}{Improving robustness to model misspecification in Bayesian experimental design.}
-AABI workshop, 2025.
-\bibitem[Knox et~al.(2024)]{knox2024} W.~B.~Knox, S.~Hatgis-Kessell, S.~Booth,
-S.~Niekum, P.~Stone, A.~Allievi. \href{https://openreview.net/forum?id=hpKJkVoThY}{Models of human preference for learning reward
-functions.} TMLR, 2024.
-\bibitem[Larian et~al.(2025)]{larian2025} A.~Larian, A.~Belsare, Z.~Wu, D.~S.~Brown.
-\href{https://hitl-robot-learning.github.io/pdfs/learner.pdf}{Learner and teacher perspectives on learning rewards from multiple types of human
-feedback.} Workshop paper, 2025.
-\bibitem[Sloman et~al.(2022)]{sloman2022} S.~J.~Sloman, D.~M.~Oppenheimer,
-S.~B.~Broomell, C.~R.~Shalizi. \href{https://arxiv.org/abs/2205.13698}{Characterizing the robustness of Bayesian adaptive
-experimental designs to active learning bias.} arXiv:2205.13698, 2022.
-\bibitem[Wilde et~al.(2020)]{wilde2020} N.~Wilde, D.~Kuli\'c, S.~L.~Smith. \href{https://arxiv.org/abs/2005.04067}{Active
-preference learning using maximum regret.} IROS, 2020.
+\bibitem[Kurtz and Burdick(2025)]{kurtz2025} V.~Kurtz, J.~W.~Burdick.
+\href{https://arxiv.org/abs/2502.13406}{Generative predictive control: flow matching
+policies for dynamic and difficult-to-demonstrate tasks.} arXiv:2502.13406, 2025.
+\bibitem[Laskey et~al.(2017)]{laskey2017} M.~Laskey, J.~Lee, R.~Fox, A.~Dragan,
+K.~Goldberg. \href{https://arxiv.org/abs/1703.09327}{DART: Noise injection for robust
+imitation learning.} CoRL, 2017.
+\bibitem[Levine and Koltun(2013)]{levine2013} S.~Levine, V.~Koltun. Variational policy
+search via trajectory optimization. NeurIPS, 2013.
+\bibitem[Mordatch et~al.(2015)]{mordatch2015} I.~Mordatch, K.~Lowrey, G.~Andrew,
+Z.~Popovi\'c, E.~Todorov. Interactive control of diverse complex characters with
+neural networks. NeurIPS, 2015.
+\bibitem[Ross et~al.(2011)]{ross2011} S.~Ross, G.~Gordon, J.~A.~Bagnell.
+\href{https://proceedings.mlr.press/v15/ross11a.html}{A reduction of imitation
+learning and structured prediction to no-regret online learning.} AISTATS, 2011.
+\bibitem[Williams et~al.(2017)]{williams2017} G.~Williams, P.~Drews, B.~Goldfain,
+J.~M.~Rehg, E.~A.~Theodorou. \href{https://arxiv.org/abs/1707.02342}{Information
+theoretic model predictive control: theory and applications to autonomous driving.}
+arXiv:1707.02342, 2017.
 \end{thebibliography}}
 
 \end{document}

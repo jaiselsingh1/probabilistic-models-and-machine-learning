@@ -13,7 +13,7 @@ including references.
 - `q1_cavi.py`: full-covariance mean-field CAVI and synthetic validation.
 - `q2_kl.py`: the required Monte Carlo grid search, figures, and numerical macros.
 - `check_kl.py`: independent quadrature and checks of the population/empirical KL identities.
-- `check_preferences.py`: independently integrates the three-trajectory example and checks its Fisher-information comparison.
+- `check_preferences.py`: numerical check for an earlier Question 3 draft on preference learning (commit `49143bd`). The current proposal does not use it.
 - `figures/`: PDF figures and generated LaTeX macros. The heatmap mesh is rasterized to prevent seams.
 - `results/`: complete grid estimates and numerical results.
 
@@ -86,10 +86,10 @@ verification step, not a substitute for the assignment's sampling method.
 
 ### Question 3
 
-`check_preferences.py` reproduces the numerical example in part (a). It checks
-the outer pair’s Fisher information on the stated prior range, integrates the
-posterior probabilities for the linear and quadratic models in two ways, and
-exports the resulting values to `figures/q3_numbers.tex` and
-`results/q3_checks.json`. The probabilities condition on nine of ten outer-pair
-comparisons favoring +1. The gridworld and human-data studies are proposed
-experiments.
+Question 3 proposes a probabilistic account of distilling a sampling-based
+planner (MPPI) into a policy with guided policy search. It contains no new
+computation in this folder: the pilot figures it quotes come from the separate
+research project and are marked as unaudited in the text. The earlier draft of
+Question 3, on preference learning, is in commit `49143bd`; `check_preferences.py`,
+`figures/q3_numbers.tex` and `results/q3_checks.json` belong to that draft and are
+no longer used by `hw2.tex`.
