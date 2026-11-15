@@ -229,3 +229,8 @@ homeworks/*.aux
 homeworks/*.out
 homeworks/*.fls
 homeworks/*.fdb_latexmk
+homeworks/**/*.aux
+homeworks/**/*.out
+homeworks/**/*.fls
+homeworks/**/*.fdb_latexmk
+homeworks/**/.mpl-cache/

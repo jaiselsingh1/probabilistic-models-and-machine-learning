@@ -1,0 +1,119 @@
+{
+  "status": "passed",
+  "target": {
+    "a": 3.0,
+    "s": 1.0
+  },
+  "quadrature_grid_points": 2916,
+  "grid_minimizers": [
+    {
+      "m": -3.0,
+      "sigma": 1.0
+    },
+    {
+      "m": 3.0,
+      "sigma": 1.0
+    }
+  ],
+  "grid_minimum_reverse_kl": 0.6892979330290778,
+  "continuous_numerical_minimizers": [
+    {
+      "m": -2.984306026723782,
+      "sigma": 1.023368558733791,
+      "kl": 0.6887689958549644,
+      "direct_quadrature_error": 1.9094659443945783e-13
+    },
+    {
+      "m": 2.984306026723782,
+      "sigma": 1.023368558733791,
+      "kl": 0.6887689958549644,
+      "direct_quadrature_error": 1.9094659443945783e-13
+    }
+  ],
+  "maximum_grid_symmetry_error": 0.0,
+  "independent_direct_density_checks": [
+    {
+      "m": -3.0,
+      "sigma": 1.0,
+      "logcosh_quadrature": 0.6892979330290778,
+      "direct_density_quadrature": 0.6892979330290779,
+      "absolute_difference": 1.1102230246251565e-16,
+      "direct_quadrature_error_estimate": 4.095642074513485e-13
+    },
+    {
+      "m": 3.0,
+      "sigma": 1.0,
+      "logcosh_quadrature": 0.6892979330290778,
+      "direct_density_quadrature": 0.6892979330290779,
+      "absolute_difference": 1.1102230246251565e-16,
+      "direct_quadrature_error_estimate": 4.095642074513485e-13
+    },
+    {
+      "m": 2.9,
+      "sigma": 1.0,
+      "logcosh_quadrature": 0.6928477553628571,
+      "direct_density_quadrature": 0.6928477553628555,
+      "absolute_difference": 1.6653345369377348e-15,
+      "direct_quadrature_error_estimate": 4.153238561867525e-13
+    },
+    {
+      "m": 3.0,
+      "sigma": 1.1,
+      "logcosh_quadrature": 0.6935994293239016,
+      "direct_density_quadrature": 0.6935994293239011,
+      "absolute_difference": 5.551115123125783e-16,
+      "direct_quadrature_error_estimate": 2.987404631741257e-13
+    },
+    {
+      "m": 0.0,
+      "sigma": 3.1622776601683795,
+      "logcosh_quadrature": 0.9379801910167744,
+      "direct_density_quadrature": 0.9379801910167749,
+      "absolute_difference": 4.440892098500626e-16,
+      "direct_quadrature_error_estimate": 1.4724377985989354e-13
+    },
+    {
+      "m": 1.5,
+      "sigma": 2.0,
+      "logcosh_quadrature": 1.0098621771597909,
+      "direct_density_quadrature": 1.0098621771597913,
+      "absolute_difference": 4.440892098500626e-16,
+      "direct_quadrature_error_estimate": 3.6697994312670596e-13
+    }
+  ],
+  "discrete_objective_and_gradient_checks": [
+    {
+      "distribution": "population",
+      "probabilities": [
+        0.2,
+        0.0,
+        0.5,
+        0.3
+      ],
+      "zero_mass_categories": [
+        1
+      ],
+      "maximum_objective_identity_error": 2.220446049250313e-16,
+      "maximum_log_likelihood_gradient_error": 1.5886293149025565e-11,
+      "maximum_kl_gradient_error": 1.3110735587462674e-11,
+      "ordering_comparisons_passed": 16
+    },
+    {
+      "distribution": "empirical",
+      "probabilities": [
+        0.18181818181818182,
+        0.0,
+        0.45454545454545453,
+        0.36363636363636365
+      ],
+      "zero_mass_categories": [
+        1
+      ],
+      "maximum_objective_identity_error": 2.220446049250313e-16,
+      "maximum_log_likelihood_gradient_error": 1.2572318186521159e-11,
+      "maximum_kl_gradient_error": 7.021203063395376e-12,
+      "ordering_comparisons_passed": 16
+    }
+  ],
+  "note": "Deterministic checks complement, rather than replace, the required Monte Carlo experiment."
+}

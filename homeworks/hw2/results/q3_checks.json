@@ -1,0 +1,22 @@
+{
+  "slope_prior_bounds": [
+    -1.5,
+    1.5
+  ],
+  "outer_pair_wins": 9,
+  "outer_pair_losses": 1,
+  "regret_tolerance": 0.1,
+  "probability_plus_one_within_tolerance": {
+    "linear": 0.9980931140830882,
+    "curvature_sd_one": 0.8449269733455507,
+    "curvature_sd_half": 0.9600848030633672
+  },
+  "largest_quadrature_discrepancy": 7.105427357601002e-15,
+  "fisher_equal_information_abs_theta": 1.662885891058621,
+  "probability_plus_one_preferred_to_zero": {
+    "truth": 0.2689414213699951,
+    "linear_at_theta_one": 0.7310585786300049,
+    "linear_posterior_predictive": 0.7211330745782009
+  },
+  "true_regret_of_plus_one": 1
+}

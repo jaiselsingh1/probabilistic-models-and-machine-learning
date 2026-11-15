@@ -1,0 +1,37 @@
+{
+  "seed": 20261111,
+  "rng": "numpy.random.default_rng / PCG64",
+  "grid_order": "m increasing outer loop, sigma increasing inner loop",
+  "n_samples_per_grid_point": 10000,
+  "grid_points": 2916,
+  "m_range_step": [
+    -4,
+    4,
+    0.1
+  ],
+  "sigma_range_step": [
+    0.5,
+    4,
+    0.1
+  ],
+  "target_a": 3.0,
+  "target_s": 1.0,
+  "forward": {
+    "m": 0.0,
+    "sigma": 3.1622776601683795
+  },
+  "reverse_mc_selected": {
+    "m": 3.0,
+    "sigma": 1.0,
+    "kl_estimate": 0.6892963180699053,
+    "pointwise_mc_se": 0.000741572030925923,
+    "kl_quadrature": 0.689297933029078,
+    "quadrature_absolute_error": 4.008049015814374e-12
+  },
+  "reverse_kl_at_forward": 0.9379801910167755,
+  "checks": "passed",
+  "versions": {
+    "numpy": "2.4.6",
+    "matplotlib": "3.10.9"
+  }
+}

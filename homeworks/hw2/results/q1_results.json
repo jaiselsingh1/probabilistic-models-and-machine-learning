@@ -1,0 +1,34 @@
+{
+  "seed": 20261111,
+  "n_users": 80,
+  "n_items": 60,
+  "k": 3,
+  "noise_sd": 0.5,
+  "train_n": 1874,
+  "test_n": 2926,
+  "restarts": 3,
+  "best_elbo": -2353.48561581595,
+  "sweeps": 242,
+  "all_elbo_minimum_increases": [
+    2.253860657219775e-06,
+    2.225791831733659e-06,
+    2.251489604532253e-06
+  ],
+  "test_rmse": 0.558890236415493,
+  "zero_predictor_test_rmse": 1.7512407809805814,
+  "oracle_conditional_mean_test_rmse": 0.49498958187768116,
+  "latent_signal_test_rmse": 0.26880187626999447,
+  "test_mean_predictive_sd": 0.5612270681992142,
+  "predictive_interval": {
+    "nominal_coverage": 0.95,
+    "empirical_test_coverage": 0.9439507860560492,
+    "mean_interval_width": 2.19713141648,
+    "mc_draws_per_pair": 2000
+  },
+  "checks": {
+    "predictive_mean_mc_z": 1.1244395592527026,
+    "predictive_variance_mc_z": 1.168275375515754,
+    "cold_start_prior_check": "passed",
+    "moment_mc_draws": 500000
+  }
+}
