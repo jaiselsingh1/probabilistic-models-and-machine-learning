@@ -1,0 +1,67 @@
+\documentclass[12pt]{article}
+
+% Match the earlier reports using locally available fonts.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Week 9: Hierarchical Models, Robust Models, and Empirical Bayes} \\
+Jaisel Singh (js6897) \\
+November 11, 2026
+\end{flushleft}
+
+\vspace{0.1in}
+
+What stood out to me in Gelman and Hill was that multilevel modeling gives the
+regression coefficients their own model. Group intercepts might satisfy
+$\alpha_j\sim\mathcal{N}(\mu,\tau^2)$, allowing groups to differ while sharing
+information about their distribution. The radon example made partial pooling
+concrete: an extreme county average based on two measurements should carry less
+weight than an equally extreme average supported by many measurements. The
+amount of shrinkage depends on the precision of the group's observations
+relative to the variation between groups. I find this a useful way to think
+about regularization: we stabilize uncertain estimates through an explicit
+assumption about how the groups are related.
+
+Efron's distinction between oracle Bayes and empirical Bayes clarified what we
+gain and what we must estimate. The oracle supplies information about the
+collection's true parameter values, giving a benchmark for estimation; empirical
+Bayes learns the distribution used for inference from the observed collection.
+This lets many related estimation problems inform each individual one.
+However, the estimated prior is itself uncertain. Plugging it in as though it
+were known omits a source of uncertainty, while a fully Bayesian hierarchy can
+propagate uncertainty in its hyperparameters. I found Efron's separation of
+overall estimation accuracy from inference about a particular case especially
+helpful: improving average performance does not settle whether the comparison
+group is relevant to that case.
+
+The robustness theme makes me think about where unusual behavior occurs. A
+heavy-tailed observation model can reduce an extreme measurement's influence
+on a fitted location, but that is a different issue from an unusual
+group. Pooling the latter toward an unsuitable population could obscure a real
+difference. This connects Efron's relevance question to the hierarchy itself.
+My remaining question is how to use model checks and subject knowledge to
+decide whether an extreme group needs a different error model, additional
+group-level predictors, or a different population to borrow information from.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Gelman and Hill (2007), \emph{Data Analysis Using Regression and Multilevel/Hierarchical Models}, Chapters 11--12;
+Efron (2019), \href{https://doi.org/10.1214/18-STS674}{\emph{Bayes, Oracle Bayes and Empirical Bayes}}.
+\par}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

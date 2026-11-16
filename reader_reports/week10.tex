@@ -1,0 +1,70 @@
+\documentclass[12pt]{article}
+
+% Match the earlier reports using locally available fonts.
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage[parfill]{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex plus 0.2ex minus 0.2ex}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\begin{flushleft}
+\textbf{Week 10: Deep Probabilistic Models} \\
+Jaisel Singh (js6897) \\
+November 18, 2026
+\end{flushleft}
+
+\vspace{0.1in}
+
+What stood out to me in Kingma and Welling was that the encoder learns how to
+perform approximate inference across observations. The generative model
+$p_\theta(z)p_\theta(x\mid z)$ describes how latent variables produce data,
+while $q_\phi(z\mid x)$ approximates the posterior in the reverse direction.
+Sharing the encoder's parameters across examples replaces a separate
+optimization of variational parameters for every new observation with a learned
+mapping. I found this connection to week 6 especially useful: the encoder
+returns a distribution over possible codes, and the decoder specifies a
+distribution over observations. Their roles remain distinct even though both
+are trained together using the evidence lower bound.
+
+The reparameterization used by Kingma and Welling and by Rezende et al. made the
+computation clearer to me. For a diagonal Gaussian encoder, we can write
+\mbox{$z=\mu_\phi(x)+\sigma_\phi(x)\odot\epsilon$}, with
+\mbox{$\epsilon\sim\mathcal{N}(0,I)$}. The randomness comes from a distribution that
+does not depend on the encoder parameters, allowing gradients to pass through
+the transformation for a sampled noise value. This connects stochastic
+optimization to probabilistic inference without requiring analytic expectations
+for the whole network. Ranganath et al.'s deep exponential families also show
+that layers of random variables can use distributions beyond the Gaussian,
+connecting these deeper representations to week 8's modeling choices.
+
+Wang, Blei, and Cunningham complicated my sense of what successful training
+means. In exact posterior collapse, $p_\theta(z\mid x)=p(z)$: observing the data
+does not update the latent variable. They connect this to a likelihood that is
+constant in the latent variable at the fitted parameters, so the problem can
+exist even with exact inference. They also distinguish this from collapse
+caused by an overly restrictive variational approximation. I find that
+distinction important because improving the encoder cannot recover information
+that the fitted generative model never uses. My remaining question is how to
+evaluate whether a learned representation contains useful information about
+the data beyond obtaining convincing samples or a good reconstruction score.
+
+\vspace{0.05in}
+{\footnotesize
+\textit{Readings:} Kingma and Welling (2013), \href{https://arxiv.org/abs/1312.6114}{\emph{Auto-Encoding Variational Bayes}};
+Rezende et al.\ (2014), \href{https://www.cs.columbia.edu/~blei/fogm/readings/RezendeMohamedWierstra2014.pdf}{\emph{Stochastic Back-propagation and Variational Inference in Deep Latent Gaussian Models}};
+Ranganath et al.\ (2015), \href{https://arxiv.org/abs/1411.2581}{\emph{Deep Exponential Families}};
+Wang et al.\ (2021), \href{https://www.cs.columbia.edu/~blei/papers/WangBleiCunningham2021.pdf}{\emph{Posterior Collapse and Latent Variable Non-identifiability}}.
+\par}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
